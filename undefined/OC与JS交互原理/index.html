@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="OC与JS交互原理前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function">
+<meta name="description" content="前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function A(){retu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="OC与JS交互原理">
 <meta property="og:url" content="https://blog.lemongame.top/undefined/OC与JS交互原理/index.html">
 <meta property="og:site_name" content="Lemon&#39;s Blog">
-<meta property="og:description" content="OC与JS交互原理前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function">
+<meta property="og:description" content="前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function A(){retu">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png">
-<meta property="og:updated_time" content="2019-08-27T11:17:03.530Z">
+<meta property="og:updated_time" content="2019-08-27T11:18:06.683Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="OC与JS交互原理">
-<meta name="twitter:description" content="OC与JS交互原理前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function">
+<meta name="twitter:description" content="前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function A(){retu">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png">
 
 
@@ -331,7 +331,7 @@
       
 
       
-        <h2 id="OC与JS交互原理"><a href="#OC与JS交互原理" class="headerlink" title="OC与JS交互原理"></a>OC与JS交互原理</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png" alt="oc_js交互.png"></p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png" alt="oc_js交互.png"></p>
 <h3 id="OC-与-JS-交互示例"><a href="#OC-与-JS-交互示例" class="headerlink" title="OC 与 JS 交互示例"></a>OC 与 JS 交互示例</h3><h4 id="OC调用JS方法"><a href="#OC调用JS方法" class="headerlink" title="OC调用JS方法"></a>OC调用JS方法</h4><pre><code>NSString *jsCode = @&quot;function A(){return 10;}&quot;;
 JSContext *context = [[JSContext alloc] init];
 [context evaluateScript:jsCode];
@@ -514,7 +514,7 @@ var test = function(){
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#OC与JS交互原理"><span class="nav-number">1.</span> <span class="nav-text">OC与JS交互原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OC-与-JS-交互示例"><span class="nav-number">1.2.</span> <span class="nav-text">OC 与 JS 交互示例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#OC调用JS方法"><span class="nav-number">1.2.1.</span> <span class="nav-text">OC调用JS方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JS调用OC方法"><span class="nav-number">1.2.2.</span> <span class="nav-text">JS调用OC方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OC-与-JS-交互原理"><span class="nav-number">1.3.</span> <span class="nav-text">OC 与 JS 交互原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#JSVirtualMachine"><span class="nav-number">1.3.1.</span> <span class="nav-text">JSVirtualMachine</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSContext"><span class="nav-number">1.3.2.</span> <span class="nav-text">JSContext</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSValue"><span class="nav-number">1.3.3.</span> <span class="nav-text">JSValue</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#NSDictionary-lt-—-gt-js-Object"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">NSDictionary &lt;—&gt; js Object</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NSBlock-lt-—-gt-js-Function"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">NSBlock &lt;—&gt; js Function</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSManagedValue"><span class="nav-number">1.3.4.</span> <span class="nav-text">JSManagedValue</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#交互原理"><span class="nav-number">1.3.5.</span> <span class="nav-text">交互原理</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OC-与-JS-交互示例"><span class="nav-number">2.</span> <span class="nav-text">OC 与 JS 交互示例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#OC调用JS方法"><span class="nav-number">2.1.</span> <span class="nav-text">OC调用JS方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JS调用OC方法"><span class="nav-number">2.2.</span> <span class="nav-text">JS调用OC方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OC-与-JS-交互原理"><span class="nav-number">3.</span> <span class="nav-text">OC 与 JS 交互原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#JSVirtualMachine"><span class="nav-number">3.1.</span> <span class="nav-text">JSVirtualMachine</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSContext"><span class="nav-number">3.2.</span> <span class="nav-text">JSContext</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSValue"><span class="nav-number">3.3.</span> <span class="nav-text">JSValue</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#NSDictionary-lt-—-gt-js-Object"><span class="nav-number">3.3.1.</span> <span class="nav-text">NSDictionary &lt;—&gt; js Object</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NSBlock-lt-—-gt-js-Function"><span class="nav-number">3.3.2.</span> <span class="nav-text">NSBlock &lt;—&gt; js Function</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSManagedValue"><span class="nav-number">3.4.</span> <span class="nav-text">JSManagedValue</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#交互原理"><span class="nav-number">3.5.</span> <span class="nav-text">交互原理</span></a></li></ol></li></ol></div>
             
 
           </div>

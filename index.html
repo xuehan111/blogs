@@ -330,7 +330,7 @@
       
         
           
-            <h2 id="OC与JS交互原理"><a href="#OC与JS交互原理" class="headerlink" title="OC与JS交互原理"></a>OC与JS交互原理</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png" alt="oc_js交互.png"></p>
+            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png" alt="oc_js交互.png"></p>
 <h3 id="OC-与-JS-交互示例"><a href="#OC-与-JS-交互示例" class="headerlink" title="OC 与 JS 交互示例"></a>OC 与 JS 交互示例</h3><h4 id="OC调用JS方法"><a href="#OC调用JS方法" class="headerlink" title="OC调用JS方法"></a>OC调用JS方法</h4><pre><code>NSString *jsCode = @&quot;function A(){return 10;}&quot;;
 JSContext *context = [[JSContext alloc] init];
 [context evaluateScript:jsCode];
