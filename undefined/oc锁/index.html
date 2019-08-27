@@ -79,19 +79,17 @@
 
 
 
-<meta name="description" content="Charles抓包原理HTTPS为了兼顾安全与效率，同时使用了对称加密和非对称加密。数据是被对称加密传输的，对称加密过程需要客户端的一个密钥，为了确保能把该密钥安全传输到服务器端，采用非对称加密对该密钥进行加密传输，总的来说，对数据进行对称加密，对称加密所要使用的密钥通过非对称加密传输。 Charles抓包采用的是中间人代理的模式  1、客户端向服务器请求CA证书 2、Charles拦截客户端的请">
+<meta name="description" content="OC中的锁1、NSLock NSLock是一个互斥锁。其使用方式如下: - (void)demoAction {    [self.lock lock];    //TODO: do your action    [self.lock unlock]; }当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安">
 <meta property="og:type" content="article">
-<meta property="og:title" content="charles原理">
-<meta property="og:url" content="https://blog.lemongame.top/undefined/charles原理/index.html">
+<meta property="og:title" content="oc锁">
+<meta property="og:url" content="https://blog.lemongame.top/undefined/oc锁/index.html">
 <meta property="og:site_name" content="Lemon&#39;s Blog">
-<meta property="og:description" content="Charles抓包原理HTTPS为了兼顾安全与效率，同时使用了对称加密和非对称加密。数据是被对称加密传输的，对称加密过程需要客户端的一个密钥，为了确保能把该密钥安全传输到服务器端，采用非对称加密对该密钥进行加密传输，总的来说，对数据进行对称加密，对称加密所要使用的密钥通过非对称加密传输。 Charles抓包采用的是中间人代理的模式  1、客户端向服务器请求CA证书 2、Charles拦截客户端的请">
+<meta property="og:description" content="OC中的锁1、NSLock NSLock是一个互斥锁。其使用方式如下: - (void)demoAction {    [self.lock lock];    //TODO: do your action    [self.lock unlock]; }当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/charles.png">
-<meta property="og:updated_time" content="2019-08-27T10:46:33.752Z">
+<meta property="og:updated_time" content="2019-08-27T11:11:35.467Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="charles原理">
-<meta name="twitter:description" content="Charles抓包原理HTTPS为了兼顾安全与效率，同时使用了对称加密和非对称加密。数据是被对称加密传输的，对称加密过程需要客户端的一个密钥，为了确保能把该密钥安全传输到服务器端，采用非对称加密对该密钥进行加密传输，总的来说，对数据进行对称加密，对称加密所要使用的密钥通过非对称加密传输。 Charles抓包采用的是中间人代理的模式  1、客户端向服务器请求CA证书 2、Charles拦截客户端的请">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/xuehan111/images/master/charles.png">
+<meta name="twitter:title" content="oc锁">
+<meta name="twitter:description" content="OC中的锁1、NSLock NSLock是一个互斥锁。其使用方式如下: - (void)demoAction {    [self.lock lock];    //TODO: do your action    [self.lock unlock]; }当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安">
 
 
 
@@ -121,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="https://blog.lemongame.top/undefined/charles原理/">
+  <link rel="canonical" href="https://blog.lemongame.top/undefined/oc锁/">
 
 
 
 
 
-  <title>charles原理 | Lemon's Blog</title>
+  <title>oc锁 | Lemon's Blog</title>
   
 
 
@@ -264,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/charles原理/">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/oc锁/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="疯狂小柠檬">
@@ -281,7 +279,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">charles原理</h1>
+          <h1 class="post-title" itemprop="name headline">oc锁</h1>
         
 
         <div class="post-meta">
@@ -293,7 +291,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:45:49+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:11:05+08:00">
                 2019-08-27
               </time>
             
@@ -331,18 +329,137 @@
       
 
       
-        <h3 id="Charles抓包原理"><a href="#Charles抓包原理" class="headerlink" title="Charles抓包原理"></a>Charles抓包原理</h3><p>HTTPS为了兼顾安全与效率，同时使用了对称加密和非对称加密。数据是被对称加密传输的，对称加密过程需要客户端的一个密钥，为了确保能把该密钥安全传输到服务器端，采用非对称加密对该密钥进行加密传输，总的来说，对数据进行对称加密，对称加密所要使用的密钥通过非对称加密传输。</p>
-<p>Charles抓包采用的是中间人代理的模式</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/charles.png" alt="charles.png"></p>
-<p>1、客户端向服务器请求CA证书</p>
-<p>2、Charles拦截客户端的请求，伪装成客户端向服务器请求</p>
-<p>3、服务器向客户端(Charles)返回服务器自己的CA证书</p>
-<p>4、Charles拦截服务器的响应，获取服务器证书公钥，然后自己制作一张证书，将服务器证书替换后发送给客户端。（这一步，Charles拿到了服务器证书的公钥）</p>
-<p>5、客户端接收到“服务器”（实际上是Charles）的证书后，生成一个对称密钥，用Charles的公钥加密，发送给“服务器”（Charles）</p>
-<p>6、Charles拦截客户端的响应，用自己的私钥解密对称密钥，然后用服务器证书公钥加密，发送给服务器。（这一步，Charles拿到了对称密钥</p>
-<p>7、服务器用自己的私钥解密对称密钥，向“客户端”（Charles）发送响应</p>
-<p>8、Charles拦截服务器的响应，替换成自己的证书后发送给客户端</p>
-<p>9、至此，连接建立，Charles拿到了 服务器证书的公钥 和 客户端与服务器协商的对称密钥，之后就可以解密或者修改加密的报文了。</p>
+        <h3 id="OC中的锁"><a href="#OC中的锁" class="headerlink" title="OC中的锁"></a>OC中的锁</h3><p>1、NSLock</p>
+<p>NSLock是一个互斥锁。其使用方式如下:</p>
+<pre><code>- (void)demoAction {
+   [self.lock lock];
+   //TODO: do your action
+   [self.lock unlock];
+}</code></pre><p>当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安全。但是如果连续锁定两次，则会造成死锁问题。</p>
+<pre><code>- (void)demoAction {
+   [self.lock lock];
+   //TODO: do your action
+   [self.lock lock];
+   //TODO: do your action
+   [self.lock unlock];
+   [self.lock unlock];
+}</code></pre><p>上面的这种情况会造成死锁。</p>
+<p>2、NSRecursiveLock 递归锁</p>
+<p>递归锁，允许在同一个线程中多次获得锁，而不会造成死锁。</p>
+<pre><code>void recursiveAction(int count) {
+    [_recursiveLock lock];
+    if(count &lt;= 0) return;
+    NSLog(@&quot;%d&quot;,count);
+    recursiveAction(--count);
+    [_recursiveLock unlock];
+}</code></pre><p>3、@synchronized 便捷的创建互斥锁的方式</p>
+<pre><code>@synchronized (self) {
+    // action
+}</code></pre><p> 4、NSCondition</p>
+<p> 条件锁，通过它可以实现不同线程的调度。一个线程被某一个条件所阻塞，直到另一个线程满足该条件从而发送信号给该线程使得该线程可以正确的执行。</p>
+<pre><code> - (void)action1 {
+    [self.condition lock];
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        // TODO: action1
+        self.finish = YES;
+        [self.condition signal];
+        [self.condition unlock];
+    });
+}
+- (void)action2 {
+    [self.condition lock];
+    while (!self.finish) {
+        [self.condition wait];
+    }
+    // TODO: action2
+    [self.condition unlock];
+}</code></pre><p>5、NSConditionLock</p>
+<p>该对象所定义的互斥锁可以在使得在某个条件下进行锁定和解锁。它和 NSCondition 很像，但实现方式是不同的。</p>
+<p>当两个线程需要特定顺序执行的时候，例如生产者消费者模型，则可以使用 NSConditionLock 。当生产者执行执行的时候，消费者可以通过特定的条件获得锁，当生产者完成执行的时候，它将解锁该锁，然后把锁的条件设置成唤醒消费者线程的条件。锁定和解锁的调用可以随意组合，lock 和 unlockWithCondition: 配合使用 lockWhenCondition: 和 unlock 配合使用</p>
+<pre><code>- (void)producer {
+    while (YES) {
+        [self.conditionLock lock];
+        NSLog(@&quot;have something&quot;);
+        self.count++;
+        [self.conditionLock unlockWithCondition:1];
+    }
+}
+- (void)consumer {
+    while (YES) {
+        [self.conditionLock lockWhenCondition:1];
+        NSLog(@&quot;use something&quot;);
+        self.count--;
+        [self.conditionLock unlockWithCondition:0];
+    }
+}</code></pre><p>6、pthread_mutex</p>
+<p>POSIX 互斥锁是一种超级易用的互斥锁，使用的时候，只需要初始化一个 pthread_mutex_t 用 pthread_mutex_lock 来锁定 pthread_mutex_unlock 来解锁，当使用完成后，记得调用 pthread_mutex_destroy 来销毁锁。</p>
+<pre><code>pthread_mutex_t lock;
+pthread_mutex_init(&amp;lock,NULL);
+pthread_mutex_lock(&amp;lock);
+//do your action
+pthread_mutex_unlock(&amp;lock);
+pthread_mutex_destroy(&amp;lock);</code></pre><p>该锁可以初始化时，可以通过设置type设置成 递归锁</p>
+<pre><code>pthread_mutex_t lock;
+pthread_mutexattr_t mattr;
+int ret;
+ret = pthread_mutexattr_init(&amp;mattr);
+pthread_mutexattr_settype(&amp;mattr, PTHREAD_MUTEX_RECURSIVE);
+pthread_mutex_init(&amp;lock,&amp;mattr);
+pthread_mutex_lock(&amp;lock);
+// TODO: 
+pthread_mutex_unlock(&amp;lock);
+pthread_mutex_destroy(&amp;lock);</code></pre><p> 7、pthread_rwlock 读写锁</p>
+<p> 读写锁，在对文件进行操作的时候，写操作是排他的，一旦有多个线程对同一个文件进行写操作，后果不可估量，但读是可以的，多个线程读取时没有问题的。</p>
+<ul>
+<li>当读写锁被一个线程以读模式占用的时候，写操作的其他线程会被阻塞，读操作的其他线程还可以继续进行。</li>
+<li>当读写锁被一个线程以写模式占用的时候，写操作的其他线程会被阻塞，读操作的其他线程也被阻塞。</li>
+</ul>
+<pre><code> pthread_rwlock_t rwlock = PTHREAD_RWLOCK_INITIALIZER;
+- (void)readAction {
+    pthread_rwlock_rdlock(&amp;rwlock);
+    // TODO: 读文件
+    pthread_rwlock_unlock(&amp;rwlock);
+}
+- (void)writeAction {
+    pthread_rwlock_wrlock(&amp;rwlock);
+    // TODO: 写文件
+    pthread_rwlock_unlock(&amp;rwlock);
+}</code></pre><p>8、POSIX Conditions 条件锁</p>
+<p>POSIX条件锁和NSCondition条件锁类似，只不过POSIX条件锁偏底层实现。</p>
+<pre><code>pthread_mutex_t p_mutex_lock;
+pthread_cond_t p_condition;
+
+pthread_mutex_init(&amp;p_mutex_lock,NULL);
+pthread_cond_init(&amp;p_condition, NULL);
+
+- (void)action1 {
+    pthread_mutex_lock(&amp;p_mutex_lock);
+    NSLog(@&quot;action1&quot;);
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        // action1
+        [NSThread sleepForTimeInterval:3];
+        self.finish = YES;
+        pthread_cond_signal(&amp;p_condition);
+        pthread_mutex_unlock(&amp;p_mutex_lock);
+    });
+}
+- (void)action2 {
+    pthread_mutex_lock(&amp;p_mutex_lock);
+    while (!self.finish) {
+        pthread_cond_wait(&amp;p_condition, &amp;p_mutex_lock);
+    }
+    NSLog(@&quot;action2&quot;);
+    pthread_mutex_unlock(&amp;p_mutex_lock);
+}</code></pre><p>9、OSSpinLock 自旋锁</p>
+<p>自旋锁和互斥锁的区别在于：</p>
+<ul>
+<li>互斥锁，当一个线程获得这个锁之后，其他想要获得此锁的线程将会被阻塞，直到该锁被释放</li>
+<li>自旋锁：当一个线程获得锁之后，其他线程将会一直循环在哪里查看是否该锁被释放</li>
+</ul>
+<pre><code>OSSpinLock spinLock = OS_SPINLOCK_INIT;
+    OSSpinLockLock(&amp;spinLock);
+// TODO: do your action
+OSSpinLockUnlock(&amp;spinLock);</code></pre><p> ** 由于安全问题，OSSpinLock已被苹果废弃**</p>
 
       
     </div>
@@ -367,8 +484,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/undefined/block/" rel="next" title="block">
-                <i class="fa fa-chevron-left"></i> block
+              <a href="/undefined/kvo/" rel="next" title="kvo">
+                <i class="fa fa-chevron-left"></i> kvo
               </a>
             
           </div>
@@ -376,10 +493,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/undefined/clang/" rel="prev" title="clang">
-                clang <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -495,7 +608,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Charles抓包原理"><span class="nav-number">1.</span> <span class="nav-text">Charles抓包原理</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#OC中的锁"><span class="nav-number">1.</span> <span class="nav-text">OC中的锁</span></a></li></ol></div>
             
 
           </div>

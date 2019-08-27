@@ -259,6 +259,256 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/oc锁/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/oc锁/" itemprop="url">oc锁</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:11:05+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="OC中的锁"><a href="#OC中的锁" class="headerlink" title="OC中的锁"></a>OC中的锁</h3><p>1、NSLock</p>
+<p>NSLock是一个互斥锁。其使用方式如下:</p>
+<pre><code>- (void)demoAction {
+   [self.lock lock];
+   //TODO: do your action
+   [self.lock unlock];
+}</code></pre><p>当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安全。但是如果连续锁定两次，则会造成死锁问题。</p>
+<pre><code>- (void)demoAction {
+   [self.lock lock];
+   //TODO: do your action
+   [self.lock lock];
+   //TODO: do your action
+   [self.lock unlock];
+   [self.lock unlock];
+}</code></pre><p>上面的这种情况会造成死锁。</p>
+<p>2、NSRecursiveLock 递归锁</p>
+<p>递归锁，允许在同一个线程中多次获得锁，而不会造成死锁。</p>
+<pre><code>void recursiveAction(int count) {
+    [_recursiveLock lock];
+    if(count &lt;= 0) return;
+    NSLog(@&quot;%d&quot;,count);
+    recursiveAction(--count);
+    [_recursiveLock unlock];
+}</code></pre><p>3、@synchronized 便捷的创建互斥锁的方式</p>
+<pre><code>@synchronized (self) {
+    // action
+}</code></pre><p> 4、NSCondition</p>
+<p> 条件锁，通过它可以实现不同线程的调度。一个线程被某一个条件所阻塞，直到另一个线程满足该条件从而发送信号给该线程使得该线程可以正确的执行。</p>
+<pre><code> - (void)action1 {
+    [self.condition lock];
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        // TODO: action1
+        self.finish = YES;
+        [self.condition signal];
+        [self.condition unlock];
+    });
+}
+- (void)action2 {
+    [self.condition lock];
+    while (!self.finish) {
+        [self.condition wait];
+    }
+    // TODO: action2
+    [self.condition unlock];
+}</code></pre><p>5、NSConditionLock</p>
+<p>该对象所定义的互斥锁可以在使得在某个条件下进行锁定和解锁。它和 NSCondition 很像，但实现方式是不同的。</p>
+<p>当两个线程需要特定顺序执行的时候，例如生产者消费者模型，则可以使用 NSConditionLock 。当生产者执行执行的时候，消费者可以通过特定的条件获得锁，当生产者完成执行的时候，它将解锁该锁，然后把锁的条件设置成唤醒消费者线程的条件。锁定和解锁的调用可以随意组合，lock 和 unlockWithCondition: 配合使用 lockWhenCondition: 和 unlock 配合使用</p>
+<pre><code>- (void)producer {
+    while (YES) {
+        [self.conditionLock lock];
+        NSLog(@&quot;have something&quot;);
+        self.count++;
+        [self.conditionLock unlockWithCondition:1];
+    }
+}
+- (void)consumer {
+    while (YES) {
+        [self.conditionLock lockWhenCondition:1];
+        NSLog(@&quot;use something&quot;);
+        self.count--;
+        [self.conditionLock unlockWithCondition:0];
+    }
+}</code></pre><p>6、pthread_mutex</p>
+<p>POSIX 互斥锁是一种超级易用的互斥锁，使用的时候，只需要初始化一个 pthread_mutex_t 用 pthread_mutex_lock 来锁定 pthread_mutex_unlock 来解锁，当使用完成后，记得调用 pthread_mutex_destroy 来销毁锁。</p>
+<pre><code>pthread_mutex_t lock;
+pthread_mutex_init(&amp;lock,NULL);
+pthread_mutex_lock(&amp;lock);
+//do your action
+pthread_mutex_unlock(&amp;lock);
+pthread_mutex_destroy(&amp;lock);</code></pre><p>该锁可以初始化时，可以通过设置type设置成 递归锁</p>
+<pre><code>pthread_mutex_t lock;
+pthread_mutexattr_t mattr;
+int ret;
+ret = pthread_mutexattr_init(&amp;mattr);
+pthread_mutexattr_settype(&amp;mattr, PTHREAD_MUTEX_RECURSIVE);
+pthread_mutex_init(&amp;lock,&amp;mattr);
+pthread_mutex_lock(&amp;lock);
+// TODO: 
+pthread_mutex_unlock(&amp;lock);
+pthread_mutex_destroy(&amp;lock);</code></pre><p> 7、pthread_rwlock 读写锁</p>
+<p> 读写锁，在对文件进行操作的时候，写操作是排他的，一旦有多个线程对同一个文件进行写操作，后果不可估量，但读是可以的，多个线程读取时没有问题的。</p>
+<ul>
+<li>当读写锁被一个线程以读模式占用的时候，写操作的其他线程会被阻塞，读操作的其他线程还可以继续进行。</li>
+<li>当读写锁被一个线程以写模式占用的时候，写操作的其他线程会被阻塞，读操作的其他线程也被阻塞。</li>
+</ul>
+<pre><code> pthread_rwlock_t rwlock = PTHREAD_RWLOCK_INITIALIZER;
+- (void)readAction {
+    pthread_rwlock_rdlock(&amp;rwlock);
+    // TODO: 读文件
+    pthread_rwlock_unlock(&amp;rwlock);
+}
+- (void)writeAction {
+    pthread_rwlock_wrlock(&amp;rwlock);
+    // TODO: 写文件
+    pthread_rwlock_unlock(&amp;rwlock);
+}</code></pre><p>8、POSIX Conditions 条件锁</p>
+<p>POSIX条件锁和NSCondition条件锁类似，只不过POSIX条件锁偏底层实现。</p>
+<pre><code>pthread_mutex_t p_mutex_lock;
+pthread_cond_t p_condition;
+
+pthread_mutex_init(&amp;p_mutex_lock,NULL);
+pthread_cond_init(&amp;p_condition, NULL);
+
+- (void)action1 {
+    pthread_mutex_lock(&amp;p_mutex_lock);
+    NSLog(@&quot;action1&quot;);
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        // action1
+        [NSThread sleepForTimeInterval:3];
+        self.finish = YES;
+        pthread_cond_signal(&amp;p_condition);
+        pthread_mutex_unlock(&amp;p_mutex_lock);
+    });
+}
+- (void)action2 {
+    pthread_mutex_lock(&amp;p_mutex_lock);
+    while (!self.finish) {
+        pthread_cond_wait(&amp;p_condition, &amp;p_mutex_lock);
+    }
+    NSLog(@&quot;action2&quot;);
+    pthread_mutex_unlock(&amp;p_mutex_lock);
+}</code></pre><p>9、OSSpinLock 自旋锁</p>
+<p>自旋锁和互斥锁的区别在于：</p>
+<ul>
+<li>互斥锁，当一个线程获得这个锁之后，其他想要获得此锁的线程将会被阻塞，直到该锁被释放</li>
+<li>自旋锁：当一个线程获得锁之后，其他线程将会一直循环在哪里查看是否该锁被释放</li>
+</ul>
+<pre><code>OSSpinLock spinLock = OS_SPINLOCK_INIT;
+    OSSpinLockLock(&amp;spinLock);
+// TODO: do your action
+OSSpinLockUnlock(&amp;spinLock);</code></pre><p> ** 由于安全问题，OSSpinLock已被苹果废弃**</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/kvo/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1790,276 +2040,6 @@ committer xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/block/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/block/" itemprop="url">block</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:42:23+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="深入理解block"><a href="#深入理解block" class="headerlink" title="深入理解block"></a>深入理解block</h3><h4 id="Block的使用"><a href="#Block的使用" class="headerlink" title="Block的使用"></a>Block的使用</h4><pre><code>// 定义Block类型
-typedef void(^Block)(NSString *name);
-// 作为属性
-@property (nonatomic, copy) void (^Block)(NSString *name);
-// 作为参数
-- (void)addAction:(void(^)(NSString *name))result;
-
-Block block = ^(NSString *name){
-
-};
-self.Block = ^(NSString *name) {
-
-};
-void (^block)(NSString *temp) = ^(NSString *temp){
-
-};</code></pre><h4 id="Block的内存管理"><a href="#Block的内存管理" class="headerlink" title="Block的内存管理"></a>Block的内存管理</h4><p>iOS 将Block分为三类，<strong>NSGlobalBlock</strong>，<strong>NSStackBlock</strong>，<strong>NSMallocBlock</strong>。其在内存中的存储如下。</p>
-<table>
-<thead>
-<tr>
-<th>Block</th>
-<th>存储</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><strong>NSGlobalBlock</strong></td>
-<td>全局区</td>
-</tr>
-<tr>
-<td><strong>NSStackBlock</strong></td>
-<td>栈区</td>
-</tr>
-<tr>
-<td><strong>NSMallocBlock</strong></td>
-<td>堆区</td>
-</tr>
-</tbody></table>
-<p><strong>NSGlobalBlock</strong>: 么有引用外部变量，或者引用了静态变量或全局变量</p>
-<p><strong>NSStackBlock</strong>: 在MRC下，引用了外部局部变量的block</p>
-<p><strong>NSMallocBlock</strong>: 在ARC下，引用了外部局部变量的block</p>
-<p> <code>Note:在ARC下，引用了外部局部变量的block,会进行copy操作，所以在ARC下不存在__NSStackBlock__</code>。</p>
-<h5 id="Block自己的内存管理"><a href="#Block自己的内存管理" class="headerlink" title="Block自己的内存管理"></a>Block自己的内存管理</h5><p>对于block，有两个内存管理方法：Block_copy, Block_release;Block_copy与copy等效， Block_release与release等效；</p>
-<ul>
-<li>不管是对block进行retian,copy,release,block的引用计数都不会增加，始终为1；</li>
-<li>NSGlobalBlock:使用retain,copy, release都无效，block依旧存在全局区，且没有释放, 使用copy和retian只是返回block的指针；</li>
-<li>NSStackBlock:使用retain,release操作无效；栈区block会在方法返回后将block空间回收； 使用copy将栈区block复制到堆区，可以长久保留block的空间，以供后面的程序使用；</li>
-<li>NSMallocBlock:支持retian,release，虽然block的引用计数始终为1，但内存中还是会对引用进行管理，使用Block_copy引用+1， Block_release引用-1； 对于NSMallocBlock使用copy之后,不会产生新的block，只是增加了一次引用，类似于使用retian;</li>
-</ul>
-<h5 id="Block引用变量的内存管理"><a href="#Block引用变量的内存管理" class="headerlink" title="Block引用变量的内存管理"></a>Block引用变量的内存管理</h5><p>Block 引用局部变量，是值传递，引用全局变量和静态变量，是指针传递。<br>Block的结构如下：</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/block_layout.png" alt="Block_Layout"></p>
-<p>对于<strong>block修饰的变量，如:</strong>block int a = 10;会在栈区用block结构体方式保存。</p>
-<pre><code>struct __Block_byref_b_0 {
-      void *__isa;
-    __Block_byref_b_0 *__forwarding;
-     int __flags;
-     int __size;
-     int a;
-};</code></pre><p>此时，__forwarding 指针指向block自身。</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/stackBlock.png" alt="stackBlock.png"></p>
-<p>使用Block_copy复制到对上之后，栈区的block中的__forwarding指向堆区的地址。</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/heapBlock.png" alt="heapBlock.png"></p>
-<h4 id="Blcok-copy"><a href="#Blcok-copy" class="headerlink" title="Blcok_copy"></a>Blcok_copy</h4><pre><code>void *_Block_copy(const void *arg) { 
-    return _Block_copy_internal(arg, WANTS_ONE); 
-} </code></pre><p>上面的方法调用了_Block_copy_internal()函数，查看_Block_copy_internal方法的实现：</p>
-<pre><code>static void *_Block_copy_internal(const void *arg, const int flags) { 
-    struct Block_layout *aBlock; 
-    const bool wantsOne = (WANTS_ONE &amp;amp; flags) == WANTS_ONE; 
-
-    // 1 
-    if (!arg) return NULL; 
-
-    // 2 
-    aBlock = (struct Block_layout *)arg; 
-
-    // 3 
-    if (aBlock-&gt;flags &amp;amp; BLOCK_NEEDS_FREE) { 
-        // latches on high 
-        latching_incr_int(&amp;amp;aBlock-&gt;flags); 
-        return aBlock; 
-    } 
-
-    // 4 
-    else if (aBlock-&gt;flags &amp;amp; BLOCK_IS_GLOBAL) { 
-        return aBlock; 
-    } 
-
-    // 5 
-    struct Block_layout *result = malloc(aBlock&gt;descriptor-&gt;size); 
-    if (!result) return (void *)0; 
-
-    // 6 
-    memmove(result, aBlock, aBlock-&gt;descriptor-&gt;size); // bitcopy first 
-
-    // 7 
-    result-&gt;flags &amp;amp;= ~(BLOCK_REFCOUNT_MASK);    // XXX not needed 
-    result-&gt;flags |= BLOCK_NEEDS_FREE | 1; 
-
-    // 8 
-    result-&gt;isa = _NSConcreteMallocBlock; 
-
-    // 9 
-    if (result-&gt;flags &amp;amp; BLOCK_HAS_COPY_DISPOSE) { 
-        (*aBlock-&gt;descriptor-&gt;copy)(result, aBlock); // do fixup 
-    } 
-
-    return result; 
-} </code></pre><p>下面来看看该方法都做了些什么事情：</p>
-<p>1、如果传入的参数是NULL则直接返回NULL。这样可以保证传入一个NULL block时函数的安全性。</p>
-<p>2、将参数强制转换为一个指针，该指针指向一个Block_layout结构对象。实际上在第一集中就介绍了Block_layout结构：这是一个内部使用的数据结构，该结构组成一个block，其中包含一个block的实现函数，以及另外几个元数据。</p>
-<p>3、 如果block的flags包含BLOCK_NEEDS_FREE，说明这是一个堆block(a heap block)。这种情况下，需要做的事情就是增加引用计数(reference count)，然后将同一个的block返回。</p>
-<p>4、如果block是一个全局block(参考第一集)，那么不用做任何事情，直接返回同一个block即可——因为全局block是一个单例(singleton)。</p>
-<p>5、如果到这一步了，可以肯定该block肯定被分配在栈上。这种情况，需要将block拷贝到堆上。这也是最有趣的一部分。首先是利用malloc()函数在堆上创建block对应size大小的内存空间。如果失败了，就返回NULL，否则继续往下执行。</p>
-<p>6、 利用memmove()函数将分配在栈中的block按位拷贝至刚刚在堆上分配的空间中。按位拷贝可以确保block中的所有元数据都能准确的进行拷贝，例如block的descriptor。</p>
-<p>7、接着需要更新一下block的flags。第一行代码是确保引用计数被设置为0。后面紧跟的注释表示这不是必须的——估计此时引用计数已经是0了。我猜测这行代码的作用是为了防止潜在的bug，会引起引用计数不为0的情况。第二行代码是设置BLOCK_NEEDS_FREE标志，这标示该block是一个堆block，当引用计数变为0时，需要free掉。后面紧跟的| 1是将block的引用计数设置为1。</p>
-<p>8、将block的isa指针设置为 _NSConcreteMallocBlock，这就意味着该block是一个堆block。</p>
-<p>9、最后，如果block有一个拷贝辅助函数(a copy helper function)，那么就调用它。如果有必要的话，表一起会生成一个拷贝辅助函数。例如block需要拷贝对象的时候，拷贝辅助函数会retain住已经拷贝的对象。</p>
-<p>####Block_release<br>与Block_copy对应的是Block_release()。同样，Block_release()也是一个宏定义，如下所示：</p>
-<pre><code>#define Block_release(...) _Block_release((const void *)(__VA_ARGS__)) 
-
-void _Block_release(void *arg) { 
-    // 1 
-    struct Block_layout *aBlock = (struct Block_layout *)arg; 
-    if (!aBlock) return; 
-
-    // 2 
-    int32_t newCount; 
-    newCount = latching_decr_int(&amp;amp;aBlock-&gt;flags) &amp;amp; BLOCK_REFCOUNT_MASK; 
-
-    // 3 
-    if (newCount &gt; 0) return; 
-
-    // 4 
-    if (aBlock-&gt;flags &amp;amp; BLOCK_NEEDS_FREE) { 
-        if (aBlock-&gt;flags &amp;amp; BLOCK_HAS_COPY_DISPOSE)(*aBlock-&gt;descriptor-&gt;dispose)(aBlock); 
-        _Block_deallocator(aBlock); 
-    } 
-
-    // 5 
-    else if (aBlock-&gt;flags &amp;amp; BLOCK_IS_GLOBAL) { 
-        ; 
-    } 
-
-    // 6 
-    else { 
-        printf(&quot;Block_release called upon a stack Block: %p, ignored\n&quot;, (void *)aBlock); 
-    } 
-} </code></pre><p>1、 首先将参数强制转换为Block_layout结构。如果传入的是NULL，那么为了函数的安全起见，将直接返回。</p>
-<p>2、将block的引用计数标志位减1(还记得Block_copy()中将这个引用计数标志位设置为1吗？)。</p>
-<p>3、如果newCount大于0，说明还有别的对象引用了这个block，所以并不需要立即释放block，只需简单的返回即可。</p>
-<p>4、否则，如果flags中包含BLOCK_NEEDS_FREE，那么说明这个block是分配到堆上的，并且如果引用计数为0，那么需要释放这个block。首先是调用了block的dispose辅助函数，该函数跟copy辅助函数相反，负责做相反的操作，例如释放掉所有在block中拷贝的变量等。最后使用_Block_deallocator函数释放掉block，如果你去runtime.c文件中看看，会发现该函数的尾部是一个指向free的函数指针，也就是释放掉malloc分配的内存。</p>
-<p>5、如果block是全局的，那么什么事情也不用做。</p>
-<p>6、如果代码执行到这里了，会发生一些奇怪的事情：因为正在尝试将栈上的block释放掉，所以这行代码是为了提醒开发者的。在程序实际运行过程中，永远不会看到这里的提示。</p>
-<h4 id="Block-循环引用的解决"><a href="#Block-循环引用的解决" class="headerlink" title="Block 循环引用的解决"></a>Block 循环引用的解决</h4>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2112,7 +2092,7 @@ void _Block_release(void *arg) {
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">15</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
