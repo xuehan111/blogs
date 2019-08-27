@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="OC与JS交互原理前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OC与JS交互原理">
+<meta property="og:url" content="https://blog.lemongame.top/undefined/OC与JS交互原理/index.html">
+<meta property="og:site_name" content="Lemon&#39;s Blog">
+<meta property="og:description" content="OC与JS交互原理前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png">
+<meta property="og:updated_time" content="2019-08-27T11:17:03.530Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="OC与JS交互原理">
+<meta name="twitter:description" content="OC与JS交互原理前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://blog.lemongame.top/undefined/OC与JS交互原理/">
+
+
+
+
+
+  <title>OC与JS交互原理 | Lemon's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta custom-logo">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lemon's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-首页">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-标签">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-分类">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-归档">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-关于">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/OC与JS交互原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">OC与JS交互原理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:15:31+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="OC与JS交互原理"><a href="#OC与JS交互原理" class="headerlink" title="OC与JS交互原理"></a>OC与JS交互原理</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png" alt="oc_js交互.png"></p>
+<h3 id="OC-与-JS-交互示例"><a href="#OC-与-JS-交互示例" class="headerlink" title="OC 与 JS 交互示例"></a>OC 与 JS 交互示例</h3><h4 id="OC调用JS方法"><a href="#OC调用JS方法" class="headerlink" title="OC调用JS方法"></a>OC调用JS方法</h4><pre><code>NSString *jsCode = @&quot;function A(){return 10;}&quot;;
+JSContext *context = [[JSContext alloc] init];
+[context evaluateScript:jsCode];
+JSValue *value = [context evaluateScript:@&quot;A()&quot;];
+NSLog(@&quot;%d&quot;, [value toInt32]);</code></pre><h4 id="JS调用OC方法"><a href="#JS调用OC方法" class="headerlink" title="JS调用OC方法"></a>JS调用OC方法</h4><pre><code>JSContext *context = [[JSContext alloc] init];
+// 初始化方法
+context[@&quot;test&quot;] =  ^() {
+    NSLog(@&quot;1230&quot;);
+};
+// 调用方法
+ [context evaluateScript:@&quot;test()&quot;];</code></pre><h3 id="OC-与-JS-交互原理"><a href="#OC-与-JS-交互原理" class="headerlink" title="OC 与 JS 交互原理"></a>OC 与 JS 交互原理</h3><p> 先了解下JavaScriptCore 框架中的几个对象: JSVirtualMachine、JSContext、JSValue、JSManagedValue</p>
+<h4 id="JSVirtualMachine"><a href="#JSVirtualMachine" class="headerlink" title="JSVirtualMachine"></a>JSVirtualMachine</h4><p>从字面意思上看，是JS虚拟机。一个JSVirtualMachine实例代表了一个 JS运行环境，或者可以说是一系列JS运行所需的资源。该类有两个主要的使用用途：一是支持并发的JS调用，二是管理JS和Native之间桥对象的内存。</p>
+<p>JS是单线程机制，在一个JSVirtualMachine中，只有一条线程可以执行JS代码，所以我们无法在一个JSVirtualMachine进行多线程处理JS任务。如果要多线程处理JS任务，就需要同时生成多个JSVirtualMachine，从而达到多线程处理的目的。</p>
+<h4 id="JSContext"><a href="#JSContext" class="headerlink" title="JSContext"></a>JSContext</h4><p> 每个JSContext都从属于一个JSVirtualMachine，一个JSVirtualMachine可以包含多个JSContext。</p>
+<p> JSContext负责JS语言的执行，JS代码的执行必须在JSContext之中。我们可以通过创建一个JSContext去调用JS脚本，访问一些JS定义的值和函数，同时JSContext也提供了让JS访问Native对象，方法的接口。</p>
+<p> JSContext 的属性中有个 globalObject对象，它返回当前执行JSContext的全局对象，这个globalObject对象就是 JSContext的核心。我们在原生中对js的交互，其实就是在跟这个对象交互。globalObject对象存储了我们注入到JS中的原生方法以及我们在执行JS代码后，生成的变量和函数。在WebKit中，JSContext返回的global对象就是 Window对象。</p>
+<h4 id="JSValue"><a href="#JSValue" class="headerlink" title="JSValue"></a>JSValue</h4><p>OC 是不可以直接使用 JS 的变量和函数的，同时，JS 也是不可以直接使用 OC 的变量和方法的。因此，需要经过转化之后才可以使用。JSValue 可以实现OC 和 JS值的相互转化。一个JSValue 代表了一个JS值的引用。</p>
+<p>OC 和 JS 类型转化关系如下:</p>
+<p>  Objective-C type   |   JavaScript type<br> ——————–+———————<br>         nil         |     undefined<br>        NSNull       |        null<br>       NSString      |       string<br>       NSNumber      |   number, boolean<br>     NSDictionary    |   Object object<br>       NSArray       |    Array object<br>        NSDate       |     Date object<br>       NSBlock       |   Function object<br>          id         |   Wrapper object<br>        Class        | Constructor object </p>
+<h5 id="NSDictionary-lt-—-gt-js-Object"><a href="#NSDictionary-lt-—-gt-js-Object" class="headerlink" title="NSDictionary &lt;—&gt; js Object"></a>NSDictionary &lt;—&gt; js Object</h5><p> OC 的 NSDictionary是key，value键值对形式，JS 的 Object 也是 键值(key,value)的形式.因此可以相互转化。</p>
+<pre><code>var person = {&quot;name&quot;: &quot;xuehan&quot;, &quot;age&quot;: 10 }; // js Object
+NSDictionary *dict = @{@&quot;name&quot;: @&quot;xuehan&quot;, @&quot;age&quot;: @10} //  OC NSDictionary</code></pre><h5 id="NSBlock-lt-—-gt-js-Function"><a href="#NSBlock-lt-—-gt-js-Function" class="headerlink" title="NSBlock &lt;—&gt; js Function"></a>NSBlock &lt;—&gt; js Function</h5><p> OC 中的Block，本质上就是一个包裹了函数指针的类。而 JS 中的函数实际上也是一个”Function”类型的对象，函数名 其实就是指向一个函数对象的引用。因此可以相互转化</p>
+<pre><code>// OC block
+void (^Block)() = ^{
+    NSLog(@&quot;123&quot;);
+}
+// js 函数
+var test = function(){
+    return 10;
+}</code></pre><h4 id="JSManagedValue"><a href="#JSManagedValue" class="headerlink" title="JSManagedValue"></a>JSManagedValue</h4><p>JS内存管理是垃圾回收，并且JS中的对象都是强引用，而OC是引用计数。如果双方相互引用，势必会造成循环引用，而导致内存泄露。我们可以用JSManagedValue保存JSValue来避免.</p>
+<p>JSManagedValue 采用了 “conditionally retained” 机制来管理 内存，即 只要对象能通过 JS object graph 或者  通过 addManagedReference:withOwner: 方式告知给 JSVirtualMachine 的 Objective-C object graph 访问到，就不会释放。</p>
+<h4 id="交互原理"><a href="#交互原理" class="headerlink" title="交互原理"></a>交互原理</h4><p>OC 调用JS方法时，是通过 JSContext的 evaluateScript 方法的执行 js 代码。该方法在globalObject中保存了生成的变量和方法，同时将值以JSValue的形式存储起来。 </p>
+<p>JS 调用 OC 原生方法，需要将原生代码先通过JSContext转化为JSValue的形式，注入到 JSContext中的globalObject里面（示例是通过Block的方式将原生方法注入到globalObject中去的。</p>
+<p>这样，无论原生代码还是JS代码，最终都将信息通过JSValue的方式保存在了globalObject中，在交互时，通过JSContext 获取到对应的 JSValue, 即可实现交互。在JS 调用原生代码时，通过拿到对应的JSValue，然后取出 invocation，来实现动态调用原生方法的。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/undefined/oc锁/" rel="next" title="oc锁">
+                <i class="fa fa-chevron-left"></i> oc锁
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="疯狂小柠檬">
+            
+              <p class="site-author-name" itemprop="name">疯狂小柠檬</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#OC与JS交互原理"><span class="nav-number">1.</span> <span class="nav-text">OC与JS交互原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OC-与-JS-交互示例"><span class="nav-number">1.2.</span> <span class="nav-text">OC 与 JS 交互示例</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#OC调用JS方法"><span class="nav-number">1.2.1.</span> <span class="nav-text">OC调用JS方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JS调用OC方法"><span class="nav-number">1.2.2.</span> <span class="nav-text">JS调用OC方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OC-与-JS-交互原理"><span class="nav-number">1.3.</span> <span class="nav-text">OC 与 JS 交互原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#JSVirtualMachine"><span class="nav-number">1.3.1.</span> <span class="nav-text">JSVirtualMachine</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSContext"><span class="nav-number">1.3.2.</span> <span class="nav-text">JSContext</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSValue"><span class="nav-number">1.3.3.</span> <span class="nav-text">JSValue</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#NSDictionary-lt-—-gt-js-Object"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">NSDictionary &lt;—&gt; js Object</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NSBlock-lt-—-gt-js-Function"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">NSBlock &lt;—&gt; js Function</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JSManagedValue"><span class="nav-number">1.3.4.</span> <span class="nav-text">JSManagedValue</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#交互原理"><span class="nav-number">1.3.5.</span> <span class="nav-text">交互原理</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">疯狂小柠檬</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
