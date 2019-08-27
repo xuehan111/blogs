@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="类型编码(TypeEncodings)类型编码为了帮助运行时系统，编译器将每个方法的返回值和参数编码成一个C字符串，并将这个字符串和OC的方法选择器进行关联。我们可以用编译器指令@encode来获取这个C字符串。当你给一个指定的类型(这个类型可以是基本数据类型，如int，可以是一个指针，一个结构体，类名等，也就是可以作为sizeof()参数的任何类型),@encode会返回一个将这个类型编码后的C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类型编码">
+<meta property="og:url" content="https://blog.lemongame.top/undefined/typeEncoding/index.html">
+<meta property="og:site_name" content="Lemon&#39;s Blog">
+<meta property="og:description" content="类型编码(TypeEncodings)类型编码为了帮助运行时系统，编译器将每个方法的返回值和参数编码成一个C字符串，并将这个字符串和OC的方法选择器进行关联。我们可以用编译器指令@encode来获取这个C字符串。当你给一个指定的类型(这个类型可以是基本数据类型，如int，可以是一个指针，一个结构体，类名等，也就是可以作为sizeof()参数的任何类型),@encode会返回一个将这个类型编码后的C">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-08-27T11:55:20.574Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="类型编码">
+<meta name="twitter:description" content="类型编码(TypeEncodings)类型编码为了帮助运行时系统，编译器将每个方法的返回值和参数编码成一个C字符串，并将这个字符串和OC的方法选择器进行关联。我们可以用编译器指令@encode来获取这个C字符串。当你给一个指定的类型(这个类型可以是基本数据类型，如int，可以是一个指针，一个结构体，类名等，也就是可以作为sizeof()参数的任何类型),@encode会返回一个将这个类型编码后的C">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://blog.lemongame.top/undefined/typeEncoding/">
+
+
+
+
+
+  <title>类型编码 | Lemon's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta custom-logo">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lemon's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-首页">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-标签">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-分类">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-归档">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-关于">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/typeEncoding/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">类型编码</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:30:55+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="类型编码-TypeEncodings"><a href="#类型编码-TypeEncodings" class="headerlink" title="类型编码(TypeEncodings)"></a>类型编码(TypeEncodings)</h3><h4 id="类型编码"><a href="#类型编码" class="headerlink" title="类型编码"></a>类型编码</h4><p>为了帮助运行时系统，编译器将每个方法的返回值和参数编码成一个C字符串，并将这个字符串和OC的方法选择器进行关联。我们可以用编译器指令@encode来获取这个C字符串。当你给一个指定的类型(这个类型可以是基本数据类型，如int，可以是一个指针，一个结构体，类名等，也就是可以作为sizeof()参数的任何类型),@encode会返回一个将这个类型编码后的C字符串。总结为一句话：<strong>用一个C字符串来表示一个数据类型</strong></p>
+<p>举例：</p>
+<pre><code>int main(int argc, const char * argv[]) {
+  @autoreleasepool {
+    char *buf1 = @encode(int);
+    char *buf2 = @encode(float);
+    char *buf3 = @encode(NSString *);
+    NSLog(@&quot;%s&quot;,buf1);
+    NSLog(@&quot;%s&quot;,buf2);
+    NSLog(@&quot;%s&quot;,buf3);
+  }
+  return 0;
+}</code></pre><p>输出结果如下：</p>
+<pre><code>i
+f
+@</code></pre><p>下面这个列表列出了一些类型码及其代表的意义</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>c</td>
+<td>A char</td>
+</tr>
+<tr>
+<td>i</td>
+<td>An int</td>
+</tr>
+<tr>
+<td>s</td>
+<td>A short</td>
+</tr>
+<tr>
+<td>l</td>
+<td>A long</td>
+</tr>
+<tr>
+<td>l</td>
+<td>is treated as a 32-bit quantity on 64-bit programs.</td>
+</tr>
+<tr>
+<td>q</td>
+<td>A long long</td>
+</tr>
+<tr>
+<td>C</td>
+<td>An unsigned char</td>
+</tr>
+<tr>
+<td>I</td>
+<td>An unsigned int</td>
+</tr>
+<tr>
+<td>S</td>
+<td>An unsigned short</td>
+</tr>
+<tr>
+<td>L</td>
+<td>An unsigned long</td>
+</tr>
+<tr>
+<td>Q</td>
+<td>An unsigned long long</td>
+</tr>
+<tr>
+<td>f</td>
+<td>A float</td>
+</tr>
+<tr>
+<td>d</td>
+<td>A double</td>
+</tr>
+<tr>
+<td>B</td>
+<td>A C++ bool or a C99 _Bool</td>
+</tr>
+<tr>
+<td>v</td>
+<td>A void</td>
+</tr>
+<tr>
+<td>*</td>
+<td>A character string (char *)</td>
+</tr>
+<tr>
+<td>@</td>
+<td>An object (whether statically typed or typed id)</td>
+</tr>
+<tr>
+<td>#</td>
+<td>A class object (Class)</td>
+</tr>
+<tr>
+<td>:</td>
+<td>A method selector (SEL)</td>
+</tr>
+<tr>
+<td>[array type]</td>
+<td>An array</td>
+</tr>
+<tr>
+<td>{name=type…}</td>
+<td>A structure</td>
+</tr>
+<tr>
+<td>(name=type…)</td>
+<td>A union</td>
+</tr>
+<tr>
+<td>bnum</td>
+<td>A bit field of num bits</td>
+</tr>
+<tr>
+<td>^type</td>
+<td>A pointer to type</td>
+</tr>
+<tr>
+<td>?</td>
+<td>An unknown type (among other things, this code is used for function pointers)</td>
+</tr>
+</tbody></table>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">注意:</span><br><span class="line"></span><br><span class="line">* OC 不支持 long double类型，@encode(long double)将会返回 d ，和double类型的编码一致。</span><br><span class="line">* c 数组，在经过编码后，会在类型前加上数组的个数，如存储12个float类型的指针数组，将会返回 [12^f]</span><br><span class="line">* 类对象会被当作结构体来处理，如@encode(NSObject)将会返回&#123;NSObject=#&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以将列表中的这些值打印出来</p>
+<pre><code>int main(int argc, const char * argv[]) {
+  @autoreleasepool {
+    NSLog(@&quot;char --&gt; %s&quot;,@encode(char));
+    NSLog(@&quot;int --&gt; %s&quot;,@encode(int));
+    NSLog(@&quot;short --&gt; %s&quot;,@encode(short));
+    NSLog(@&quot;long --&gt; %s&quot;,@encode(long));
+    NSLog(@&quot;long long --&gt; %s&quot;,@encode(long long));
+    NSLog(@&quot;unsigned char --&gt; %s&quot;,@encode(unsigned char));
+    NSLog(@&quot;unsigned int --&gt; %s&quot;,@encode(unsigned int));
+    NSLog(@&quot;unsigned short --&gt; %s&quot;,@encode(unsigned short));
+    NSLog(@&quot;unsigned long --&gt; %s&quot;,@encode(unsigned long long));
+    NSLog(@&quot;float --&gt; %s&quot;,@encode(float));
+    NSLog(@&quot;bool --&gt; %s&quot;,@encode(bool));
+    NSLog(@&quot;void --&gt; %s&quot;,@encode(void));
+    NSLog(@&quot;char * --&gt; %s&quot;,@encode(char *));
+    NSLog(@&quot;id --&gt; %s&quot;,@encode(id));
+    NSLog(@&quot;Class --&gt; %s&quot;,@encode(Class));
+    NSLog(@&quot;SEL --&gt; %s&quot;,@encode(SEL));
+    int array[] = {1,2,3};
+    NSLog(@&quot;int[] --&gt; %s&quot;,@encode(typeof(array)));
+    typedef struct person{
+        char *name;
+        int age;
+    }Person;
+    NSLog(@&quot;struct --&gt; %s&quot;,@encode(Person));
+
+    typedef union union_type{
+        char *name;
+        int a;
+    }Union;
+    NSLog(@&quot;union --&gt; %s&quot;,@encode(Union));
+
+    int a = 2;
+    int *b = {&amp;a};
+    NSLog(@&quot;int[] --&gt; %s&quot;,@encode(typeof(b)));
+
+}
+  return 0;
+}</code></pre><p>打印结果和列表中所列相同，这里不再列出。</p>
+<h4 id="应用示例"><a href="#应用示例" class="headerlink" title="应用示例"></a>应用示例</h4><p>区分一个数组中NSNumber值的具体数据类型。</p>
+<pre><code>int main(int argc, const char * argv[]) {
+  @autoreleasepool {
+    NSNumber *num1 = [NSNumber numberWithInt:1];
+    NSNumber *num2 = [NSNumber numberWithFloat:1.5];
+    NSNumber *num3 = [NSNumber numberWithDouble:1.6];
+    NSNumber *num4 = [NSNumber numberWithChar:&apos;A&apos;];
+    NSArray *arr = @[num1,num2,num3,num4];
+    for (int i=0; i&lt;arr.count; i++) {
+        NSNumber *num = arr[i];
+        if(0 == strcmp([num objCType], @encode(int))){
+            NSLog(@&quot;num%d是int型数据&quot;,i);
+        }else if(0 == strcmp([num objCType], @encode(float))){
+            NSLog(@&quot;num%d是float型数据&quot;,i);
+        }else if(0 == strcmp([num objCType], @encode(double))){
+            NSLog(@&quot;num%d是double型数据&quot;,i);
+        }else if(0 == strcmp([num objCType], @encode(char))){
+            NSLog(@&quot;num%d是char型数据&quot;,i);
+        }else{
+            NSLog(@&quot;num%d是其它类型数据&quot;,i);
+        }
+    }
+  }
+  return 0;
+}</code></pre><h4 id="方法的类型编码"><a href="#方法的类型编码" class="headerlink" title="方法的类型编码"></a>方法的类型编码</h4><p>runtime系统预备了一些编码，这些编码在协议中声明方法时会用到。编码列表如下:</p>
+<pre><code>Code|Meaning
+----|-------
+r|const
+n|in
+N|inout
+o|out
+O|bycopy
+R|byref
+V|oneway</code></pre><h4 id="属性的类型编码"><a href="#属性的类型编码" class="headerlink" title="属性的类型编码"></a>属性的类型编码</h4><p>当我们声明属性时，编译器会产生一些与封装的类，类别或协议相关联的一些元数据，我们可以获得这些元数据类型作为一个@encode编译后的C字符串。总结为一句话：<strong>就是用一个C字符串来表示属性的一些描述信息</strong><br>我们可以通过property_getAttributes函数去获得属性的一个属性或者属性的其他属性经过@encode编码之后的C字符串。这个字符串以T开头，后面紧跟@encode编码后的C字符串，然后用‘,’分隔，最后以V紧跟实例变量的返回值结束。在T和V之间，属性的属性用下列字符来描述：</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R</td>
+<td>The property is read-only (readonly).</td>
+</tr>
+<tr>
+<td>C</td>
+<td>The property is a copy of the value last assigned (copy).</td>
+</tr>
+<tr>
+<td>&amp;</td>
+<td>The property is a reference to the value last assigned (retain).</td>
+</tr>
+<tr>
+<td>N</td>
+<td>The property is non-atomic (nonatomic).</td>
+</tr>
+<tr>
+<td>G<name></name></td>
+<td>The property defines a custom getter selector name. The name follows the G (for example, GcustomGetter,).</td>
+</tr>
+<tr>
+<td>S<name></name></td>
+<td>The property defines a custom setter selector name. The name follows the S (for example, ScustomSetter:,).</td>
+</tr>
+<tr>
+<td>D</td>
+<td>The property is dynamic (@dynamic).</td>
+</tr>
+<tr>
+<td>W</td>
+<td>The property is a weak reference (__weak).</td>
+</tr>
+<tr>
+<td>P</td>
+<td>The property is eligible for garbage collection.</td>
+</tr>
+<tr>
+<td>t<encoding></encoding></td>
+<td>Specifies the type using old-style encoding.</td>
+</tr>
+</tbody></table>
+<h4 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h4><p>Person.h</p>
+<pre><code>@interface Person : NSObject
+@property (nonatomic,copy) NSString *name;
+@end</code></pre><p>main.m</p>
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+#import &quot;Person.h&quot;
+#import &lt;objc/runtime.h&gt;
+
+int main(int argc, const char * argv[]) {
+  @autoreleasepool {
+    Person *p = [[Person alloc] init];
+    unsigned int outCount = 0;
+    objc_property_t *props = class_copyPropertyList([p class], &amp;outCount);
+    for (int i=0 ; i&lt;outCount; i++) {
+        objc_property_t prop = props[i];
+        NSLog(@&quot;%s&quot;,property_getAttributes(prop));
+    }
+  }
+  return 0;
+}</code></pre><p>输出结果:</p>
+<pre><code>T@&quot;NSString&quot;,C,N,V_name</code></pre><p>输出结果解释：</p>
+<pre><code>T@&quot;NSString&quot;:表示这个属性的类型是 NSString 型
+C：表示属性的引用类型是 copy
+N：表示 nonatomic
+V_name: 表示属性生成的实例变量是：_name,我们可以用_name来访问属性name的值。</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/undefined/synchronized/" rel="next" title="synchronized">
+                <i class="fa fa-chevron-left"></i> synchronized
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="疯狂小柠檬">
+            
+              <p class="site-author-name" itemprop="name">疯狂小柠檬</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#类型编码-TypeEncodings"><span class="nav-number">1.</span> <span class="nav-text">类型编码(TypeEncodings)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#类型编码"><span class="nav-number">1.1.</span> <span class="nav-text">类型编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#应用示例"><span class="nav-number">1.2.</span> <span class="nav-text">应用示例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方法的类型编码"><span class="nav-number">1.3.</span> <span class="nav-text">方法的类型编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#属性的类型编码"><span class="nav-number">1.4.</span> <span class="nav-text">属性的类型编码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#代码示例"><span class="nav-number">1.5.</span> <span class="nav-text">代码示例</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">疯狂小柠檬</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

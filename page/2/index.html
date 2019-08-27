@@ -259,6 +259,176 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/iOS内存管理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/iOS内存管理/" itemprop="url">iOS内存管理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:03:01+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="iOS内存管理"><a href="#iOS内存管理" class="headerlink" title="iOS内存管理"></a>iOS内存管理</h2><h3 id="为什么要进行内存管理"><a href="#为什么要进行内存管理" class="headerlink" title="为什么要进行内存管理"></a>为什么要进行内存管理</h3><p>内存区域分布如下:</p>
+<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F.png" alt="内存分布"></p>
+<ul>
+<li>代码区: 存放代码</li>
+<li>常量区: 存放已经初始化的全局变量、静态变量、以及常量</li>
+<li>静态区: 存放未初始化的全局变量和静态变量</li>
+<li>栈区: 栈是向低地址扩展的数据结构，是一块连续的内存的区域,存放的是函数的参数值，局部变量等，由编译器自动分配释放</li>
+<li>堆区: 堆是向高地址扩展的数据结构，是不连续的内存区域,堆中的内存是动态分配的，需要我们手动释放，所以容易产生内存泄露。</li>
+</ul>
+<p><code>由于OC生成的对象分配在堆区，因此需要我们进行内存管理。</code></p>
+<h3 id="内存管理机制"><a href="#内存管理机制" class="headerlink" title="内存管理机制"></a>内存管理机制</h3><p>OC使用引用计数器来管理内存,引用计数通过一个Map来存储，引用计数的map以对象的地址作为key，引用计数作为value。</p>
+<p>当执行retain的时候，通过对象地址查找到引用计数+1,执行release的时候，对象的引用计数-1，当一个对象的引用计数为0的时候，就会被释放。</p>
+<p>内存管理的原则：谁申请，谁释放</p>
+<h4 id="MRC-amp-amp-ARC"><a href="#MRC-amp-amp-ARC" class="headerlink" title="MRC &amp;&amp; ARC"></a>MRC &amp;&amp; ARC</h4><h5 id="MRC管理内存"><a href="#MRC管理内存" class="headerlink" title="MRC管理内存"></a>MRC管理内存</h5><p>在MRC下，当我们调用alloc，new，copy，mutableCopy等操作时,对象的引用计数器默认为1;当我们在引用对象时，需要做retain操作，不需要对象时，做release操作。</p>
+<p>当我们调用类方法来实例化对象的时候，例如[NSArry array],对象会放入自动释放池，自动释放池会做一次release操作，不需要我们手动调用release。除非又引用了该对象。</p>
+<p>MRC下的setter方法:</p>
+<pre><code>- (void)setName:(NSString *)name{
+    if(_name != name){
+        [_name release];
+        _name = [name copy];
+    }
+}
+
+- (void)setName:(NSString *)name{
+    if(_name != name){
+        [_name release];
+        _name = [name retain];
+    }
+}</code></pre><p>MRC下的类方法：</p>
+<pre><code>+ (instancetype)object {
+    NSObject *object = [[[NSObject alloc] init] autorelease];
+    return object;
+}</code></pre><h5 id="ARC下管理内存"><a href="#ARC下管理内存" class="headerlink" title="ARC下管理内存:"></a>ARC下管理内存:</h5><p>ARC 下的OC对象，会自动加入autoreleasepool，不需要我们做retain、release操作。</p>
+<p>#####Autoreleasepool</p>
+<h3 id="引起内存泄露的情况"><a href="#引起内存泄露的情况" class="headerlink" title="引起内存泄露的情况"></a>引起内存泄露的情况</h3><p>1、常见的内存泄露多由循环引用引起。只要使用弱引用避免形成闭环，便可解决</p>
+<ul>
+<li>block的循环引用。 通常使用__weak typeof(self) weakSelf = self;解决</li>
+<li>delegate 使用weak解决即可</li>
+</ul>
+<p>2、由于ARC只能管理OC创建的对象，对于一些CoreFoundation框架，当我们调用了含有crate、copy的函数的时候，需要手动调用相应的release函数。否则会引起内存泄露</p>
+<pre><code>CGPathRef boxPath = CGPathCreateWithRect(CGRectMake(0, 0, size.width, size.height), NULL);
+CFRelease(boxPath);</code></pre><p>3、NSTimer内存泄露</p>
+<h3 id="内存泄露如何查找"><a href="#内存泄露如何查找" class="headerlink" title="内存泄露如何查找"></a>内存泄露如何查找</h3><p>1、Analyze静态分析(Product –&gt; Analyze)</p>
+<p>静态分析，会检测代码的逻辑错误、潜在的内存泄露、声明错误、及api的调用错误等。</p>
+<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/analyze_sample.jpg" alt="静态分析示例"></p>
+<p>2、Instruments中的Leak动态分析内存泄漏(Product－&gt;Profile －&gt;Leaks)</p>
+<p>3、第三方工具检测</p>
+<ul>
+<li><a href="https://github.com/Tencent/MLeaksFinder" target="_blank" rel="noopener">MLeaksFinder</a></li>
+<li><a href="https://blog.csdn.net/JY_Sharer/article/details/79843781" target="_blank" rel="noopener">FBRetainCycleDetector</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/iOS-Sign/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1689,232 +1859,6 @@ void _Block_release(void *arg) {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/消息机制/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/消息机制/" itemprop="url">消息机制</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:02:04+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="消息机制"><a href="#消息机制" class="headerlink" title="消息机制"></a>消息机制</h3><h4 id="方法定义"><a href="#方法定义" class="headerlink" title="方法定义"></a>方法定义</h4><p>Runtime中的方法定义为:</p>
-<pre><code>struct objc_method {
-  SEL method_name                                          OBJC2_UNAVAILABLE;
-  char *method_types                                       OBJC2_UNAVAILABLE;
-  IMP method_imp                                           OBJC2_UNAVAILABLE;
-}  OBJC2_UNAVAILABLE;</code></pre><h4 id="SEL"><a href="#SEL" class="headerlink" title="SEL"></a>SEL</h4><p>SEL是根据方法的名称哈希化的一个值，相当于是一个方法的映射，或者说是方法的签名，我们可以根据这个值，找到对应的方法。只要方法名称相同，其值就是唯一的，因此在同一个类或者有继承关系的类中不能有相同的方法名，这也是OC不支持方法重载的原因。我们可以用@selector()来获取这个值。</p>
-<p>SEL的存在，是为了加快方法的查询速度，省去了字符串(即方法名)比对的时间，可以直接用SEL生成的KEY去查找，这样效率更高，就像我们直接根据NSDictionary的Key去读取相应的值一样。</p>
-<h4 id="IMP"><a href="#IMP" class="headerlink" title="IMP"></a>IMP</h4><p>IMP是一个指向函数的指针，其代表方法实现函数的入口地址，得到这个值，就找到了方法实现的入口。runtime 通过SEL找到IMP，进而实现方法调用的。</p>
-<h4 id="OC方法调用"><a href="#OC方法调用" class="headerlink" title="OC方法调用"></a>OC方法调用</h4><p>OC中的方法调用，其实是通过消息来传递的，我们甚至可以把方法叫做消息。</p>
-<p>当我们在调用[Object message]时，runtime做了以下处理：</p>
-<ol>
-<li>将这个方法调用转换成objc_msgSend函数</li>
-<li>objc_msgSend函数会根据Object的isa指针，找到其所属的类，然后在其类中的方法列表中查找这个message对应的selector，</li>
-<li>如果没有找到，objc_msgSend会根据Object的superclass指针，找到该对象所属类的父类，然后在父类的方法列表中查找message对应的selector，依此，objc_msgSend会在类的继承结构中一直向上寻找，直到到达NSObject类。</li>
-<li>一旦定位到selector.函数就会传入方法的接收者及其他所需要的参数，从而调用这个方法的实现。</li>
-</ol>
-<p>如果直到NSObject类中，还么有找到方法的实现IMP,那么runtime会进入消息转发流程</p>
-<h3 id="消息转发"><a href="#消息转发" class="headerlink" title="消息转发"></a>消息转发</h3><p>如下图:</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91.png" alt="消息转发"></p>
-<p>如果直到NSObject类，仍然没有找到方法的实现，那么系统会去看我们是否是动态实现了该方法.<br>如果是实例方法，会调用对象所在类的</p>
-<pre><code>+ (BOOL)resolveInstanceMethod:(SEL)sel</code></pre><p> 如果是类方法，会调用 </p>
-<pre><code>+ (BOOL)resolveClassMethod:(SEL)sel。</code></pre><p>  代码示例：</p>
-<p>Person.h</p>
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-@interface Person : NSObject
-@end</code></pre><p> Person.m</p>
-<pre><code>#import &quot;Person.h&quot;
-#import &lt;objc/runtime.h&gt;
-
-void setNameImp(id self, SEL _cmd, NSString *name){
-    NSLog(@&quot;%@&quot;,name);
-}
-
-@implementation Person
-
-+ (BOOL)resolveInstanceMethod:(SEL)sel{
-    NSLog(@&quot;%s&quot;,__FUNCTION__);
-    if(sel == @selector(setName:)){
-        class_addMethod(self, sel, (IMP)setNameImp, &quot;v@:@&quot;);
-        return YES;
-    }
-    return [super resolveInstanceMethod:sel];
-}
-@end</code></pre><p>main.m</p>
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-#import &quot;Person.h&quot;
-
-int main(int argc, const char * argv[]) {
-  @autoreleasepool {
-    Person *p = [[Person alloc] init];
-    [p performSelector:@selector(setName:) withObject:@&quot;百客&quot;];
-  }
-  return 0;
-}</code></pre><p> 输出结果：</p>
-<pre><code>+[Person resolveInstanceMethod:]
-百客</code></pre><p>如果动态方法解析时，没有处理传递的消息，那么系统就会走转发流程。<strong>动态解析的两个方法是在消息转发前执行的，如果想跳过动态解析过程，直接走消息转发流程，直接将两个方法的返回值设为NO</strong></p>
-<h4 id="Message-Forwarding"><a href="#Message-Forwarding" class="headerlink" title="Message Forwarding"></a>Message Forwarding</h4><p>运行时，如果走到了转发流程阶段，系统会先判断是否转移了消息的接收者。</p>
-<ol>
-<li><p>转移消息的接收者<br>通过</p>
-<pre><code>- forwardingTargetForSelector:</code></pre><p>可以转移消息的接收者，如果有别的对象可以实现该方法，就直接让那个对象来处理该消息。<strong>不管另一对象的方法是公有还是私有，只要实现了就行</strong></p>
-<pre><code>- (id)forwardingTargetForSelector:(SEL)aSelector{
-  if(@selector(setName:) == aSelector){
-     Student *s = [[Student alloc] init];
-     return s;
-  }
-  return [super forwardingTargetForSelector:aSelector];
- }      </code></pre><p>   Student.m</p>
-<pre><code>#import &quot;Student.h&quot;
-
-@implementation Student
-- (void)setName:(NSString *)name{
-  NSLog(@&quot;%@--&quot;,name);
-}
-@end</code></pre><p><strong>Note:该方式只是转移消息的接受者，不能对传递的消息做修改。</strong></p>
-</li>
-<li><p>完整转发<br>如果上述方式没有对转发的消息做处理，那么系统就会走完整的转发流程。<br>系统会先通过 </p>
-<pre><code>- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector</code></pre><p>方法，找到最终响应传递的消息的方法的地址，然后再通过</p>
-<pre><code>- (void)forwardInvocation:(NSInvocation *)anInvocation</code></pre><p>来转发消息。如果通过第一个方法没有找到最终响应消息的方法的地址，第二个方法是不会执行的。</p>
-<p><strong>通过这种方式转发的消息，我们不仅可以转换消息的接收者，还可以对转发的消息做相应的修改。</strong></p>
-</li>
-</ol>
-<p>继续上面的代码，我们在Person.m中增加了如下代码，main.m中的代码没有做改动。</p>
-<p>  Person.m</p>
-<pre><code>- (void)forwardInvocation:(NSInvocation *)anInvocation{
-   NSString *name = @&quot;hello&quot;;
-   int age = 10;
-   [anInvocation setArgument:&amp;name atIndex:2];
-   [anInvocation setArgument:&amp;age atIndex:3];
-   anInvocation.selector = @selector(setName:age:);                  
-   Student *s = [[Student alloc] init];
-   if([s respondsToSelector:[anInvocation selector]]){
-     [anInvocation invokeWithTarget:s];
-   }else{
-     [super forwardInvocation:anInvocation];
-   }
- }
-
-- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector{
-    NSMethodSignature *sign = [super methodSignatureForSelector:aSelector];
-    if(!sign){
-       Student *s = [[Student alloc] init];
-       sign = [s methodSignatureForSelector:@selector(setName:age:)];
-     }
-    return sign;
- }</code></pre><p>在代码中，我们将转发给Person对象的setName消息，转发给了Student对象，并修改了消息的内容，最终<br>输出结果如下:</p>
-<pre><code>hello--10</code></pre><p>在代码中，我们将转发给Person对象的setName消息，转发给了Student对象，并修改了消息的内容，最终<br>输出结果如下:</p>
-<p>hello–10</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1967,7 +1911,7 @@ int main(int argc, const char * argv[]) {
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-count">22</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
