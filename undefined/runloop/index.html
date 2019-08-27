@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Runloop线程中的runloop在开发中，我们会经常接触到线程，比如在主线程中更新UI，在子线程中异步请求等，而线程中最重要的一个组成部分便是runloop,其是用来管理线程的。runloop在线程中有以下两个作用：  保证线程不退出 监听并处理事件，使得线程有事件时工作，无事件时睡眠  每个线程中都有一个runloop，主线程中的runloop是在应用程序启动时创建的，默认是开启的，子线程中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="runloop">
+<meta property="og:url" content="https://blog.lemongame.top/undefined/runloop/index.html">
+<meta property="og:site_name" content="Lemon&#39;s Blog">
+<meta property="og:description" content="Runloop线程中的runloop在开发中，我们会经常接触到线程，比如在主线程中更新UI，在子线程中异步请求等，而线程中最重要的一个组成部分便是runloop,其是用来管理线程的。runloop在线程中有以下两个作用：  保证线程不退出 监听并处理事件，使得线程有事件时工作，无事件时睡眠  每个线程中都有一个runloop，主线程中的runloop是在应用程序启动时创建的，默认是开启的，子线程中">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/runloop.png">
+<meta property="og:updated_time" content="2019-08-27T11:26:20.468Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="runloop">
+<meta name="twitter:description" content="Runloop线程中的runloop在开发中，我们会经常接触到线程，比如在主线程中更新UI，在子线程中异步请求等，而线程中最重要的一个组成部分便是runloop,其是用来管理线程的。runloop在线程中有以下两个作用：  保证线程不退出 监听并处理事件，使得线程有事件时工作，无事件时睡眠  每个线程中都有一个runloop，主线程中的runloop是在应用程序启动时创建的，默认是开启的，子线程中">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xuehan111/images/master/runloop.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://blog.lemongame.top/undefined/runloop/">
+
+
+
+
+
+  <title>runloop | Lemon's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta custom-logo">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lemon's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-首页">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-标签">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-分类">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-归档">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-关于">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/runloop/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">runloop</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:24:25+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="Runloop"><a href="#Runloop" class="headerlink" title="Runloop"></a>Runloop</h3><h4 id="线程中的runloop"><a href="#线程中的runloop" class="headerlink" title="线程中的runloop"></a>线程中的runloop</h4><p>在开发中，我们会经常接触到线程，比如在主线程中更新UI，在子线程中异步请求等，而线程中最重要的一个组成部分便是runloop,其是用来管理线程的。runloop在线程中有以下两个作用：</p>
+<ol>
+<li>保证线程不退出</li>
+<li>监听并处理事件，使得线程有事件时工作，无事件时睡眠</li>
+</ol>
+<p>每个线程中都有一个runloop，主线程中的runloop是在应用程序启动时创建的，默认是开启的，子线程中的runloop采用的是延迟加载的方式，如果我们不主动获取，子线程的runloop是不会创建的。</p>
+<h3 id="解析runloop"><a href="#解析runloop" class="headerlink" title="解析runloop"></a>解析runloop</h3><p>runloop三要素: Modes(模式)、sources(源)、Observers(观察者)。当有事件源触发时，runloop会被唤醒并处理事件源的方法，并通知该runloop运行模式下的所有观察者。</p>
+<h4 id="Run-Loop-Modes-运行循环模式"><a href="#Run-Loop-Modes-运行循环模式" class="headerlink" title="Run Loop Modes(运行循环模式)"></a>Run Loop Modes(运行循环模式)</h4><p>运行循环在工作时，会有多种运行模式。我们常用到的模式有：NSDefaultRunLoopMode和NSRunLoopCommonModes 。每个RunLoop Mode都可以看作是一个集合，其中包含了其监听的事件源以及在事件发生时需要通知的RunLoop Observers。在相应的模式下，只有对应于该模式的source会被处理，同样也只有对应于该模式的observer会被通知。其实运行循环模式起到一个过滤作用，可以过滤到我们不关心的其他的source事件。</p>
+<p>Cocoa 和 Core Foundation框架定义了一个默认的和一些常用的运行循环模式，如下表：</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Default</td>
+<td>NSDefaultRunLoopMode (Cocoa) kCFRunLoopDefaultMode (Core Foundation)</td>
+<td>默认模式，一般设置为此模式.</td>
+</tr>
+<tr>
+<td>Connection</td>
+<td>NSConnectionReplyMode (Cocoa)</td>
+<td>Cocoa用该模式来监听NSConnection请求的回复，该模式为系统使用，我们一般不会用到</td>
+</tr>
+<tr>
+<td>Modal</td>
+<td>NSModalPanelRunLoopMode (Cocoa)</td>
+<td>Cocoa 用此模式来区分 modal panels事件.</td>
+</tr>
+<tr>
+<td>Event tracking</td>
+<td>NSEventTrackingRunLoopMode (Cocoa)</td>
+<td>Cocoa 在该模式下，限制其他source的事件</td>
+</tr>
+<tr>
+<td>Common modes</td>
+<td>NSRunLoopCommonModes (Cocoa)kCFRunLoopCommonModes (Core Foundation)</td>
+<td>这是一个可配置的模式组，在该模式下的source 事件，和模式组里的其他模式都会产生联系。在Cocoa框架中，该模式默认包含Default、Modal和 Event  tracking 三种模式，在Core Foundation中默认只包含Default模式，我们可以用CFRunLoopAddCommonMode 函数来添加自定义的模式。</td>
+</tr>
+<tr>
+<td>#### Run Loop Sources</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>先来看runloop和sources的结构图</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><img src="https://raw.githubusercontent.com/xuehan111/images/master/runloop.png" alt="runloop"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>runloop可以监听并处理事件，其监听的事件源有两种类型：<strong>Input sources(输入源)</strong> 和** Timer sources(定时器源)**。输入源异步传递事件到线程中，通常消息来自其它线程或不同的应用，定时器源同步传递事件。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>* Input  sources</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>输入源异步发送事件到线程中，输入源共有两种类型:一种是基于端口的输入源(Port-based input sources)，一种是自定义输入源(Custom input sources)。基于端口的数据源监听应用的Mach端口，自定义输入源监听自定义的事件源，二者的唯一区别是：基于端口的输入源的信号是由内核自动触发的，自定义输入源的信号是由其它线程手动触发的。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- Port-Based Sources</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Cocoa 和 Core Foundation框架给我们提供了一些创建基于端口的源的对象和函数。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>在 Cocoa中，我们只需要创建一个 NSPort对象，并将其添加到运行循环中就可以了,NSPort对象会自己创建输入源。</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<pre><code>NSPort *port = [NSPort port];
+[port scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];</code></pre><p>  但是在Core Foundation中，我们就需要手动创建端口和输入源，我们可以用CFMachPortRef, CFMessagePortRef, or CFSocketRef来创建相应的对象</p>
+<ul>
+<li><p>Custom input sources<br> 我们也可以自定义输入源，自定义输入源时，我们需要配置定义输入源的行为，运行循环模式，输入源事件的传递机制，以及销毁输入源等。</p>
+<ul>
+<li>Cocoa Perform Selector Sources<br>除了基于端口的源，Cocoa也定义了自定义输入源－－Perform Selector Sources，这使得我们可以在任意线程中执行我们的方法，Perform Selector 的方法在目标线程中是串行执行的，这样就解决了多个方法在一个线程中执行的同步问题，和基于端口的源不同，Perform Selector 在方法执行完成之后，会将自己从runloop中移除。</li>
+</ul>
+<p><strong>Note:</strong>  当我们在目标线程上执行我们的方法时，目标线程的运行循环必须开启，否则方法不会执行。主线程的运行循环默认开启，子线程的运行循环默认不开启，因此我们想要在子线程上运行我们的程序，需要手动开启子线程的运行循环。</p>
+<ul>
+<li>Timer Sources(定时器源)<br>定时器源发送同步事件到我们的线程中，对于线程来说，定时器是一种通知自己做一些事情的方式。虽然，定时器源会发出基于时间的通知，但是定时器并不是实时机制，跟输入源一样，定时器源也跟runloop的运行模式相关，如果定时器的模式，不在运行循环当前监控的模式中，定时器方法是不会执行的。另外如果定时器触发时，运行循环正在执行操作，定时器将会在下次运行循环调用时触发。</li>
+</ul>
+</li>
+</ul>
+<h4 id="Run-Loop-Observers"><a href="#Run-Loop-Observers" class="headerlink" title="Run Loop Observers"></a>Run Loop Observers</h4><p>运行循环在运行时，会发出一些通知，我们可以通过注册Observers来监听运行循环当前所处的状态，运行循环状态有以下几种：</p>
+<ul>
+<li>即将进入运行循环(kCFRunLoopEntry)</li>
+<li>运行循环将要处理定时器(kCFRunLoopBeforeTimers)</li>
+<li>运行循环将要处理输入源(kCFRunLoopBeforeSources)</li>
+<li>运行循环将要进入睡眠(kCFRunLoopBeforeWaiting)</li>
+<li>运行循环被唤醒，但是还未处理事件(kCFRunLoopAfterWaiting)</li>
+<li>运行循环退出(kCFRunLoopExit)</li>
+</ul>
+<h4 id="The-Run-Loop-Sequence-of-Events-运行循环执行事件的顺序"><a href="#The-Run-Loop-Sequence-of-Events-运行循环执行事件的顺序" class="headerlink" title="The Run Loop Sequence of Events(运行循环执行事件的顺序)"></a>The Run Loop Sequence of Events(运行循环执行事件的顺序)</h4><ol>
+<li><p>通知观察者即将进入运行循环</p>
+</li>
+<li><p>通知观察者将要处理定时器事件</p>
+</li>
+<li><p>通知观察者将要处理输入源(基于端口的源除外)事件</p>
+</li>
+<li><p>处理输入源(基于端口的源除外)事件</p>
+</li>
+<li><p>如果有基于端口的输入源事件，则立即处理。然后跳到第9步。</p>
+</li>
+<li><p>通知观察者线程将要进入休眠</p>
+</li>
+<li><p>线程进入休眠，等待被唤醒，下列事件可以唤醒线程</p>
+<ul>
+<li>基于端口的源的事件</li>
+<li>定时器事件</li>
+<li>设置的runloop超时时间到期</li>
+<li>runloop主动被唤醒</li>
+</ul>
+</li>
+<li><p>通知观察者线程刚被唤醒</p>
+</li>
+<li><p>处理挂起的事件</p>
+<ul>
+<li>如果有用户定义的定时器事件触发，处理定时器事件，并且重启运行循环，进入第2步</li>
+<li>如果触发的是输入源事件，传送事件</li>
+<li>如果runloop被主动唤醒，并且没有超时，重启runloop，进入第2步.</li>
+</ul>
+</li>
+<li><p>通知观察者运行循环将要退出</p>
+</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/undefined/resources/" rel="next" title="iOS资源地址">
+                <i class="fa fa-chevron-left"></i> iOS资源地址
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="疯狂小柠檬">
+            
+              <p class="site-author-name" itemprop="name">疯狂小柠檬</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Runloop"><span class="nav-number">1.</span> <span class="nav-text">Runloop</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#线程中的runloop"><span class="nav-number">1.1.</span> <span class="nav-text">线程中的runloop</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解析runloop"><span class="nav-number">2.</span> <span class="nav-text">解析runloop</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Run-Loop-Modes-运行循环模式"><span class="nav-number">2.1.</span> <span class="nav-text">Run Loop Modes(运行循环模式)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Run-Loop-Observers"><span class="nav-number">2.2.</span> <span class="nav-text">Run Loop Observers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#The-Run-Loop-Sequence-of-Events-运行循环执行事件的顺序"><span class="nav-number">2.3.</span> <span class="nav-text">The Run Loop Sequence of Events(运行循环执行事件的顺序)</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">疯狂小柠檬</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

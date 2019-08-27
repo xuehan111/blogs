@@ -259,6 +259,268 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/runloop/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/runloop/" itemprop="url">runloop</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:24:25+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="Runloop"><a href="#Runloop" class="headerlink" title="Runloop"></a>Runloop</h3><h4 id="线程中的runloop"><a href="#线程中的runloop" class="headerlink" title="线程中的runloop"></a>线程中的runloop</h4><p>在开发中，我们会经常接触到线程，比如在主线程中更新UI，在子线程中异步请求等，而线程中最重要的一个组成部分便是runloop,其是用来管理线程的。runloop在线程中有以下两个作用：</p>
+<ol>
+<li>保证线程不退出</li>
+<li>监听并处理事件，使得线程有事件时工作，无事件时睡眠</li>
+</ol>
+<p>每个线程中都有一个runloop，主线程中的runloop是在应用程序启动时创建的，默认是开启的，子线程中的runloop采用的是延迟加载的方式，如果我们不主动获取，子线程的runloop是不会创建的。</p>
+<h3 id="解析runloop"><a href="#解析runloop" class="headerlink" title="解析runloop"></a>解析runloop</h3><p>runloop三要素: Modes(模式)、sources(源)、Observers(观察者)。当有事件源触发时，runloop会被唤醒并处理事件源的方法，并通知该runloop运行模式下的所有观察者。</p>
+<h4 id="Run-Loop-Modes-运行循环模式"><a href="#Run-Loop-Modes-运行循环模式" class="headerlink" title="Run Loop Modes(运行循环模式)"></a>Run Loop Modes(运行循环模式)</h4><p>运行循环在工作时，会有多种运行模式。我们常用到的模式有：NSDefaultRunLoopMode和NSRunLoopCommonModes 。每个RunLoop Mode都可以看作是一个集合，其中包含了其监听的事件源以及在事件发生时需要通知的RunLoop Observers。在相应的模式下，只有对应于该模式的source会被处理，同样也只有对应于该模式的observer会被通知。其实运行循环模式起到一个过滤作用，可以过滤到我们不关心的其他的source事件。</p>
+<p>Cocoa 和 Core Foundation框架定义了一个默认的和一些常用的运行循环模式，如下表：</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Default</td>
+<td>NSDefaultRunLoopMode (Cocoa) kCFRunLoopDefaultMode (Core Foundation)</td>
+<td>默认模式，一般设置为此模式.</td>
+</tr>
+<tr>
+<td>Connection</td>
+<td>NSConnectionReplyMode (Cocoa)</td>
+<td>Cocoa用该模式来监听NSConnection请求的回复，该模式为系统使用，我们一般不会用到</td>
+</tr>
+<tr>
+<td>Modal</td>
+<td>NSModalPanelRunLoopMode (Cocoa)</td>
+<td>Cocoa 用此模式来区分 modal panels事件.</td>
+</tr>
+<tr>
+<td>Event tracking</td>
+<td>NSEventTrackingRunLoopMode (Cocoa)</td>
+<td>Cocoa 在该模式下，限制其他source的事件</td>
+</tr>
+<tr>
+<td>Common modes</td>
+<td>NSRunLoopCommonModes (Cocoa)kCFRunLoopCommonModes (Core Foundation)</td>
+<td>这是一个可配置的模式组，在该模式下的source 事件，和模式组里的其他模式都会产生联系。在Cocoa框架中，该模式默认包含Default、Modal和 Event  tracking 三种模式，在Core Foundation中默认只包含Default模式，我们可以用CFRunLoopAddCommonMode 函数来添加自定义的模式。</td>
+</tr>
+<tr>
+<td>#### Run Loop Sources</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>先来看runloop和sources的结构图</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><img src="https://raw.githubusercontent.com/xuehan111/images/master/runloop.png" alt="runloop"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>runloop可以监听并处理事件，其监听的事件源有两种类型：<strong>Input sources(输入源)</strong> 和** Timer sources(定时器源)**。输入源异步传递事件到线程中，通常消息来自其它线程或不同的应用，定时器源同步传递事件。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>* Input  sources</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>输入源异步发送事件到线程中，输入源共有两种类型:一种是基于端口的输入源(Port-based input sources)，一种是自定义输入源(Custom input sources)。基于端口的数据源监听应用的Mach端口，自定义输入源监听自定义的事件源，二者的唯一区别是：基于端口的输入源的信号是由内核自动触发的，自定义输入源的信号是由其它线程手动触发的。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- Port-Based Sources</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Cocoa 和 Core Foundation框架给我们提供了一些创建基于端口的源的对象和函数。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>在 Cocoa中，我们只需要创建一个 NSPort对象，并将其添加到运行循环中就可以了,NSPort对象会自己创建输入源。</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<pre><code>NSPort *port = [NSPort port];
+[port scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];</code></pre><p>  但是在Core Foundation中，我们就需要手动创建端口和输入源，我们可以用CFMachPortRef, CFMessagePortRef, or CFSocketRef来创建相应的对象</p>
+<ul>
+<li><p>Custom input sources<br> 我们也可以自定义输入源，自定义输入源时，我们需要配置定义输入源的行为，运行循环模式，输入源事件的传递机制，以及销毁输入源等。</p>
+<ul>
+<li>Cocoa Perform Selector Sources<br>除了基于端口的源，Cocoa也定义了自定义输入源－－Perform Selector Sources，这使得我们可以在任意线程中执行我们的方法，Perform Selector 的方法在目标线程中是串行执行的，这样就解决了多个方法在一个线程中执行的同步问题，和基于端口的源不同，Perform Selector 在方法执行完成之后，会将自己从runloop中移除。</li>
+</ul>
+<p><strong>Note:</strong>  当我们在目标线程上执行我们的方法时，目标线程的运行循环必须开启，否则方法不会执行。主线程的运行循环默认开启，子线程的运行循环默认不开启，因此我们想要在子线程上运行我们的程序，需要手动开启子线程的运行循环。</p>
+<ul>
+<li>Timer Sources(定时器源)<br>定时器源发送同步事件到我们的线程中，对于线程来说，定时器是一种通知自己做一些事情的方式。虽然，定时器源会发出基于时间的通知，但是定时器并不是实时机制，跟输入源一样，定时器源也跟runloop的运行模式相关，如果定时器的模式，不在运行循环当前监控的模式中，定时器方法是不会执行的。另外如果定时器触发时，运行循环正在执行操作，定时器将会在下次运行循环调用时触发。</li>
+</ul>
+</li>
+</ul>
+<h4 id="Run-Loop-Observers"><a href="#Run-Loop-Observers" class="headerlink" title="Run Loop Observers"></a>Run Loop Observers</h4><p>运行循环在运行时，会发出一些通知，我们可以通过注册Observers来监听运行循环当前所处的状态，运行循环状态有以下几种：</p>
+<ul>
+<li>即将进入运行循环(kCFRunLoopEntry)</li>
+<li>运行循环将要处理定时器(kCFRunLoopBeforeTimers)</li>
+<li>运行循环将要处理输入源(kCFRunLoopBeforeSources)</li>
+<li>运行循环将要进入睡眠(kCFRunLoopBeforeWaiting)</li>
+<li>运行循环被唤醒，但是还未处理事件(kCFRunLoopAfterWaiting)</li>
+<li>运行循环退出(kCFRunLoopExit)</li>
+</ul>
+<h4 id="The-Run-Loop-Sequence-of-Events-运行循环执行事件的顺序"><a href="#The-Run-Loop-Sequence-of-Events-运行循环执行事件的顺序" class="headerlink" title="The Run Loop Sequence of Events(运行循环执行事件的顺序)"></a>The Run Loop Sequence of Events(运行循环执行事件的顺序)</h4><ol>
+<li><p>通知观察者即将进入运行循环</p>
+</li>
+<li><p>通知观察者将要处理定时器事件</p>
+</li>
+<li><p>通知观察者将要处理输入源(基于端口的源除外)事件</p>
+</li>
+<li><p>处理输入源(基于端口的源除外)事件</p>
+</li>
+<li><p>如果有基于端口的输入源事件，则立即处理。然后跳到第9步。</p>
+</li>
+<li><p>通知观察者线程将要进入休眠</p>
+</li>
+<li><p>线程进入休眠，等待被唤醒，下列事件可以唤醒线程</p>
+<ul>
+<li>基于端口的源的事件</li>
+<li>定时器事件</li>
+<li>设置的runloop超时时间到期</li>
+<li>runloop主动被唤醒</li>
+</ul>
+</li>
+<li><p>通知观察者线程刚被唤醒</p>
+</li>
+<li><p>处理挂起的事件</p>
+<ul>
+<li>如果有用户定义的定时器事件触发，处理定时器事件，并且重启运行循环，进入第2步</li>
+<li>如果触发的是输入源事件，传送事件</li>
+<li>如果runloop被主动唤醒，并且没有超时，重启runloop，进入第2步.</li>
+</ul>
+</li>
+<li><p>通知观察者运行循环将要退出</p>
+</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/resources/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1983,144 +2245,6 @@ committer xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/gcd/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/gcd/" itemprop="url">gcd</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:49:39+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="GCD"><a href="#GCD" class="headerlink" title="GCD"></a>GCD</h3><p><a href="https://apple.github.io/swift-corelibs-libdispatch/" target="_blank" rel="noopener">GCD源码</a></p>
-<h4 id="队列-dispatch-queue-t"><a href="#队列-dispatch-queue-t" class="headerlink" title="队列(dispatch_queue_t)"></a>队列(dispatch_queue_t)</h4><p>向任何队列中提交的 block，都会被放到它的目标队列中执行，而普通串行队列的目标队列就是一个支持 overcommit 的全局队列，全局队列的底层则是一个线程池。</p>
-<p>线程池与目标队列的关系图</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/gcdpool.png" alt>;</p>
-<h4 id="dispatch-async"><a href="#dispatch-async" class="headerlink" title="dispatch_async"></a>dispatch_async</h4><p>把任务添加到队列的一个链表中，添加完后会唤醒队列，根据 vtable 中的函数指针，调用 wakeup 方法。在 wakeup 方法中，从线程池里取出工作线程(如果没有就新建)，然后在工作线程中取出链表头部指向的 block 并执行。</p>
-<h5 id="dispatch-sync"><a href="#dispatch-sync" class="headerlink" title="dispatch_sync"></a>dispatch_sync</h5><p>它不涉及线程池(因此一般都在当前线程执行)，而是利用与线程绑定的信号量来实现串行。</p>
-<p>分发到不同队列时，代码进入的分支也不一样，比如 dispatch_async 到主队列的任务由 runloop 处理，而分发到其他队列的任务由线程池处理。</p>
-<p>在当前串行队列中执行 dispatch_sync 时，由于 dq_running 属性(表示在运行的任务数量) 为 1，所以以下判断成立:</p>
-<pre><code>if (slowpath(!dispatch_atomic_cmpxchg2o(dq, dq_running, 0, 1))) {
-    return _dispatch_barrier_sync_f_slow(dq, ctxt, func);
-}</code></pre><p>在 _dispatch_barrier_sync_f_slow 函数中使用了线程对应的信号量并且调用 wait 方法，从而导致线程死锁。</p>
-<p>如果向其它队列同步提交 block，最终进入 _dispatch_barrier_sync_f_invoke，它只是保证了 block 执行的原子性，但没有使用线程对应的信号量。</p>
-<h4 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h4><p>它主要使用 signal 和 wait 这两个接口，底层分别调用了内核提供的方法。在调用 signal 方法后，先将 value 减一，如果大于零立刻返回，否则陷入等待。signal 方法将信号量加一，如果 value 大于零立刻返回，否则说明唤醒了某一个等待线程，此时由系统决定哪个线程的等待方法可以返回。</p>
-<h4 id="dispatch-group"><a href="#dispatch-group" class="headerlink" title="dispatch_group"></a>dispatch_group</h4><p>本质就是一个 value 非常大的信号量，等待 group 完成实际上就是等待 value 恢复初始值。而 notify 的作用是将所有注册的回调组装成一个链表，在 dispatch_async 完成时判断 value 是不是恢复初始值，如果是则调用 dispatch_async 异步执行所有注册的回调。</p>
-<h4 id="dispatch-once"><a href="#dispatch-once" class="headerlink" title="dispatch_once"></a>dispatch_once</h4><p>通过一个静态变量来标记 block 是否已被执行，同时使用信号量确保只有一个线程能执行，执行完 block 后会唤醒其他所有等待的线程。</p>
-<h4 id="dispatch-barrier-async"><a href="#dispatch-barrier-async" class="headerlink" title="dispatch_barrier_async"></a>dispatch_barrier_async</h4><p>改变了 block 的 vtable 标记位，当它将要被取出执行时，会等待前面的 block 都执行完，然后在下一次循环中被执行。</p>
-<h4 id="dispatch-source"><a href="#dispatch-source" class="headerlink" title="dispatch_source"></a>dispatch_source</h4><p>可以用来实现定时器。所有的 source 会被提交到用户指定的队列，然后提交到 manager 队列中，按照触发时间排好序。随后找到最近触发的定时器，调用内核的 select 方法等待。等待结束后，依次唤醒 manager 队列和用户指定队列，最终触发一开始设置的回调 block。</p>
-<p>GCD 中的对象用 do_suspend_cnt 来表示是否暂停。队列默认处于启动状态，而 dispatch_source 需要手动启动。</p>
-<p>dispatch_after 函数依赖于 dispatch_source 定时器，它只是注册了一个定时器，然后在回调函数中执行 block。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2173,7 +2297,7 @@ committer xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-count">18</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

@@ -259,6 +259,144 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/gcd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/gcd/" itemprop="url">gcd</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:49:39+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="GCD"><a href="#GCD" class="headerlink" title="GCD"></a>GCD</h3><p><a href="https://apple.github.io/swift-corelibs-libdispatch/" target="_blank" rel="noopener">GCD源码</a></p>
+<h4 id="队列-dispatch-queue-t"><a href="#队列-dispatch-queue-t" class="headerlink" title="队列(dispatch_queue_t)"></a>队列(dispatch_queue_t)</h4><p>向任何队列中提交的 block，都会被放到它的目标队列中执行，而普通串行队列的目标队列就是一个支持 overcommit 的全局队列，全局队列的底层则是一个线程池。</p>
+<p>线程池与目标队列的关系图</p>
+<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/gcdpool.png" alt>;</p>
+<h4 id="dispatch-async"><a href="#dispatch-async" class="headerlink" title="dispatch_async"></a>dispatch_async</h4><p>把任务添加到队列的一个链表中，添加完后会唤醒队列，根据 vtable 中的函数指针，调用 wakeup 方法。在 wakeup 方法中，从线程池里取出工作线程(如果没有就新建)，然后在工作线程中取出链表头部指向的 block 并执行。</p>
+<h5 id="dispatch-sync"><a href="#dispatch-sync" class="headerlink" title="dispatch_sync"></a>dispatch_sync</h5><p>它不涉及线程池(因此一般都在当前线程执行)，而是利用与线程绑定的信号量来实现串行。</p>
+<p>分发到不同队列时，代码进入的分支也不一样，比如 dispatch_async 到主队列的任务由 runloop 处理，而分发到其他队列的任务由线程池处理。</p>
+<p>在当前串行队列中执行 dispatch_sync 时，由于 dq_running 属性(表示在运行的任务数量) 为 1，所以以下判断成立:</p>
+<pre><code>if (slowpath(!dispatch_atomic_cmpxchg2o(dq, dq_running, 0, 1))) {
+    return _dispatch_barrier_sync_f_slow(dq, ctxt, func);
+}</code></pre><p>在 _dispatch_barrier_sync_f_slow 函数中使用了线程对应的信号量并且调用 wait 方法，从而导致线程死锁。</p>
+<p>如果向其它队列同步提交 block，最终进入 _dispatch_barrier_sync_f_invoke，它只是保证了 block 执行的原子性，但没有使用线程对应的信号量。</p>
+<h4 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h4><p>它主要使用 signal 和 wait 这两个接口，底层分别调用了内核提供的方法。在调用 signal 方法后，先将 value 减一，如果大于零立刻返回，否则陷入等待。signal 方法将信号量加一，如果 value 大于零立刻返回，否则说明唤醒了某一个等待线程，此时由系统决定哪个线程的等待方法可以返回。</p>
+<h4 id="dispatch-group"><a href="#dispatch-group" class="headerlink" title="dispatch_group"></a>dispatch_group</h4><p>本质就是一个 value 非常大的信号量，等待 group 完成实际上就是等待 value 恢复初始值。而 notify 的作用是将所有注册的回调组装成一个链表，在 dispatch_async 完成时判断 value 是不是恢复初始值，如果是则调用 dispatch_async 异步执行所有注册的回调。</p>
+<h4 id="dispatch-once"><a href="#dispatch-once" class="headerlink" title="dispatch_once"></a>dispatch_once</h4><p>通过一个静态变量来标记 block 是否已被执行，同时使用信号量确保只有一个线程能执行，执行完 block 后会唤醒其他所有等待的线程。</p>
+<h4 id="dispatch-barrier-async"><a href="#dispatch-barrier-async" class="headerlink" title="dispatch_barrier_async"></a>dispatch_barrier_async</h4><p>改变了 block 的 vtable 标记位，当它将要被取出执行时，会等待前面的 block 都执行完，然后在下一次循环中被执行。</p>
+<h4 id="dispatch-source"><a href="#dispatch-source" class="headerlink" title="dispatch_source"></a>dispatch_source</h4><p>可以用来实现定时器。所有的 source 会被提交到用户指定的队列，然后提交到 manager 队列中，按照触发时间排好序。随后找到最近触发的定时器，调用内核的 select 方法等待。等待结束后，依次唤醒 manager 队列和用户指定队列，最终触发一开始设置的回调 block。</p>
+<p>GCD 中的对象用 do_suspend_cnt 来表示是否暂停。队列默认处于启动状态，而 dispatch_source 需要手动启动。</p>
+<p>dispatch_after 函数依赖于 dispatch_source 定时器，它只是注册了一个定时器，然后在回调函数中执行 block。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/clang/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1667,7 +1805,7 @@ int main(int argc, const char * argv[]) {
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-count">18</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
