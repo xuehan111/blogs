@@ -259,6 +259,162 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/iOS系统架构/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/iOS系统架构/" itemprop="url">iOS系统架构</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:06:54+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="iOS系统架构"><a href="#iOS系统架构" class="headerlink" title="iOS系统架构"></a>iOS系统架构</h3><p>iOS的系统架构可以分为四层：CocoaTouch层、Media层、Core Service层、Core OS 层</p>
+<img src="https://raw.githubusercontent.com/xuehan111/images/master/ios_system.jpg" width="40%" height="40%/">
+
+<h4 id="Cocoa-Touch层"><a href="#Cocoa-Touch层" class="headerlink" title="Cocoa Touch层"></a>Cocoa Touch层</h4><p>该层主要提供用户交互相关的服务如界面控件、事件管理、通知中心、地图，包含以下框架：</p>
+<ul>
+<li>UIKit（界面相关）</li>
+<li>EventKit（日历事件提醒等）</li>
+<li>Notification Center（通知中心）</li>
+<li>MapKit（地图显示）</li>
+<li>Address Book（联系人）</li>
+<li>iAd（广告）</li>
+<li>Message UI（邮件与SMS显示）</li>
+<li>PushKit</li>
+</ul>
+<h4 id="Media-层"><a href="#Media-层" class="headerlink" title="Media 层"></a>Media 层</h4><p>该层主要提供图像引擎、音频引擎、视频引擎框架。</p>
+<ul>
+<li>图像引擎（Core Graphics、Core Image、Core Animation、OpenGL ES）</li>
+<li>音频引擎 （Core Audio、 AV Foundation、OpenAL）</li>
+<li>视频引擎（AV Foundation、Core Media）</li>
+</ul>
+<h4 id="Core-Service"><a href="#Core-Service" class="headerlink" title="Core Service"></a>Core Service</h4><p>该层为程序提供基础的系统服务例如网络访问、浏览器引擎、定位、文件访问、数据库访问等，主要包含以下框架：</p>
+<ul>
+<li>CFNetwork（网络访问）</li>
+<li>Core Data（数据存储）</li>
+<li>Core Location（定位功能）</li>
+<li>Core Motion（重力加速度，陀螺仪）</li>
+<li>Foundation（基础功能如NSString）</li>
+<li>Webkit（浏览器引擎）</li>
+<li>JavaScript（JavaScript引擎）</li>
+</ul>
+<h4 id="Core-OS"><a href="#Core-OS" class="headerlink" title="Core OS"></a>Core OS</h4><p>该层提供为上层结构提供最基础的服务如操作系统内核服务、本地认证、安全、加速等。</p>
+<ul>
+<li>操作系统内核服务（BSD sockets、I/O访问、内存申请、文件系统、数学计算等）</li>
+<li>本地认证（指纹识别验证等）</li>
+<li>安全（提供管理证书、公钥、密钥等的接口）</li>
+<li>加速  (执行数学、大数字以及DSP运算,这些接口iOS设备硬件相匹配）</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/iOS内存管理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1698,167 +1854,6 @@ void _Block_release(void *arg) {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/App的编译过程/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/App的编译过程/" itemprop="url">App的编译过程</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:35:26+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="App的编译"><a href="#App的编译" class="headerlink" title="App的编译"></a>App的编译</h3><h4 id="Command-R发生了什么"><a href="#Command-R发生了什么" class="headerlink" title="Command+R发生了什么"></a>Command+R发生了什么</h4><ul>
-<li>写入辅助文件：将项目的文件结构对应表、将要执行的脚本、项目依赖库的文件结构对应表写成文件，方便后面使用；并且创建一个 .app 包，后面编译后的文件都会被放入包中；</li>
-<li>运行预设脚本：Cocoapods 会预设一些脚本，当然你也可以自己预设一些脚本来运行。这些脚本都在 Build Phases 中可以看到；</li>
-<li>编译文件：针对每一个文件进行编译，生成可执行文件 Mach-O，这过程 LLVM 的完整流程，前端、优化器、后端；</li>
-<li>链接文件：将项目中的多个可执行文件合并成一个文件；</li>
-<li>拷贝资源文件：将项目中的资源文件拷贝到目标包；</li>
-<li>编译 storyboard 文件：storyboard 文件也是会被编译的；</li>
-<li>链接 storyboard 文件：将编译后的 storyboard 文件链接成一个文件；</li>
-<li>编译 Asset 文件：我们的图片如果使用 Assets.xcassets 来管理图片，那么这* 些图片将会被编译成机器码，除了 icon 和 launchImage；</li>
-<li>运行 Cocoapods 脚本：将在编译项目之前已经编译好的依赖库和相关资源拷贝到包中。</li>
-<li>生成 .app 包</li>
-<li>对包进行签名、验证</li>
-</ul>
-<h3 id="编译优化"><a href="#编译优化" class="headerlink" title="编译优化"></a>编译优化</h3><ul>
-<li><p>Build Active Architecture Only</p>
-<pre><code>Note: 
-在Debug模式下，设置为YES，只会生成指定指令集的二进制包,
-在release模式下设置为NO</code></pre></li>
-<li><p>Optimization Level</p>
-<pre><code>该变量有以下值可以设置
-* None: 编译器不会尝试优化代码，当你专注解决逻辑错误、编译速度快时使用此项。</code></pre><ul>
-<li><p>Fast: 编译器执行简单的优化来提高代码的性能，同时最大限度的减少编译时间，该选项在编译过程中会使用更多的内存。</p>
-</li>
-<li><p>Faster: 编译器执行所有优化，增加编译时间，提高代码的性能。</p>
-</li>
-<li><p>Fastest: 编译器执行所有优化，改善代码的速度，但会增加代码长度，编译速度慢。</p>
-</li>
-<li><p>Fastest, Smallest: 编译器执行所有优化，不会增加代码的长度，它是执行文件占用更少内存的首选方案</p>
-<pre><code>在Debug环境下设置为None，从而减少编译时间
-在Release环境下设置为Fastest, Smalllest，这样既能执行所有的优化而不增加代码长度，又能使执行文件占用更少的内存</code></pre></li>
-</ul>
-</li>
-<li><p>Debug Information Format</p>
-<p>  该值表示是否将调试信息加入到可执行文件中，即是否生成dSYM文件</p>
-<ul>
-<li><p>DWARF  不生成dSYM调试文件</p>
-</li>
-<li><p>DWARF with dSYM file  生成调试文件</p>
-<pre><code>在Debug环境下设置为DWARF，在release环境下设置为DWARF with dSYM file</code></pre></li>
-</ul>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1911,7 +1906,7 @@ void _Block_release(void *arg) {
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
