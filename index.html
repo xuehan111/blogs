@@ -259,6 +259,290 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/synchronized/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/synchronized/" itemprop="url">synchronized</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:28:56+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="synchronized"><a href="#synchronized" class="headerlink" title="@synchronized"></a>@synchronized</h3><h4 id="问题思考"><a href="#问题思考" class="headerlink" title="问题思考"></a>问题思考</h4><p>1、@synchronized互相嵌套会不会导致死锁？</p>
+<p>2、@synchronized(object){} 中object传入nil，会不会有问题？如果传入的object在代码块执行过程中，被置为nil，会发生什么？</p>
+<h4 id="代码执行结果"><a href="#代码执行结果" class="headerlink" title="代码执行结果"></a>代码执行结果</h4><p>1、@synchronized互相嵌套</p>
+<pre><code>- (void)test {
+    @synchronized (self) {
+        NSLog(@&quot;111&quot;);
+        @synchronized (self) {
+            NSLog(@&quot;222&quot;);
+        }
+    }
+}</code></pre><p>输出结果</p>
+<pre><code>111
+222</code></pre><p>结论: 能正确打印，证明可以相互嵌套。</p>
+<p> 2、多线程情况下，@synchronized 传入 nil</p>
+<pre><code> - (void)touchesBegan:(NSSet&lt;UITouch *&gt; *)touches withEvent:(UIEvent *)event {
+    self.value = 10;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self consume];
+    });
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self consume];
+    });
+}
+
+- (void)consume {
+    while (YES) {
+        sleep(1);
+        @synchronized (nil) {
+            if(self.value &gt; 0){
+                self.value --;
+                NSLog(@&quot;剩余票数 === %d&quot;,self.value);
+            }else{
+                NSLog(@&quot;票卖完了&quot;);
+                break;
+            }
+        }
+    }
+}</code></pre><p> 输出结果</p>
+<pre><code>剩余票数 === 9
+剩余票数 === 8
+剩余票数 === 7
+剩余票数 === 6
+剩余票数 === 4
+剩余票数 === 5
+剩余票数 === 3
+剩余票数 === 2
+剩余票数 === 0
+剩余票数 === 1
+票卖完了
+票卖完了</code></pre><p>结论: 传入nil，打印的顺序错乱，说明传入nil时，锁的互斥性消失了，等同于么有加锁</p>
+<p>3、@synchronized传入的对象，在执行过程中，被置为nil</p>
+<pre><code> - (void)touchesBegan:(NSSet&lt;UITouch *&gt; *)touches withEvent:(UIEvent *)event {
+    self.value = 10;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self consume];
+    });
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self consume];
+    });
+}
+
+- (void)consume {
+    while (YES) {
+        sleep(1);
+        @synchronized (_obj) {
+            if(self.value &gt; 0){
+                self.value --;
+                if(self.value == 10){
+                        _obj = nil;
+                }
+                NSLog(@&quot;剩余票数 === %d&quot;,self.value);
+            }else{
+                NSLog(@&quot;票卖完了&quot;);
+                break;
+            }
+        }
+    }
+}</code></pre><p>输出结果</p>
+<pre><code>剩余票数 === 9
+剩余票数 === 8
+剩余票数 === 7
+剩余票数 === 6
+剩余票数 === 4
+剩余票数 === 5
+剩余票数 === 2
+剩余票数 === 3
+剩余票数 === 0
+剩余票数 === 1
+票卖完了
+票卖完了</code></pre><p>结论: 传入的对象在代码执行的过程中置为nil，后续的数据仍然可以打印出来，说明置为nil后，锁是可以正确释放的，但是置为nil后，后续的数据顺序出现了错乱，等同于么有加锁，正好也验证了2的结论</p>
+<h3 id="synchronized探究"><a href="#synchronized探究" class="headerlink" title="@synchronized探究"></a>@synchronized探究</h3><p>我们写下以下代码:</p>
+<pre><code>- (void)test {
+    @synchronized (self) {
+        // TODO:
+    }
+}</code></pre><p>执行clang -rewrite-objc 文件名.m,我们看到编译成的c++代码如下:</p>
+<pre><code>static void _I_lockDemo_test(lockDemo * self, SEL _cmd) 
+{
+    {
+        id _rethrow = 0;
+        id _sync_obj = (id)self;
+        objc_sync_enter(_sync_obj);
+        try {
+            struct _SYNC_EXIT { _SYNC_EXIT(id arg) : sync_exit(arg) {}
+            ~_SYNC_EXIT() {objc_sync_exit(sync_exit);}
+            id sync_exit;
+            } _sync_exit(_sync_obj);
+
+
+            } catch (id e) {_rethrow = e;}
+        { struct _FIN { _FIN(id reth) : rethrow(reth) {}
+            ~_FIN() { if (rethrow) objc_exception_throw(rethrow); }
+            id rethrow;
+            } _fin_force_rethow(_rethrow);
+
+        }
+    }
+}</code></pre><p>从c++代码中，我们可以看到<br>    当我们传入对象后，其先用一个局部变量_sync_obj引用了我们传入的对象，然后用objc_sync_enter对_sync_obj加锁，用objc_sync_exit对_sync_obj释放锁。<br>查看objc_sync_enter和objc_sync_exit的源码实现</p>
+<pre><code>int objc_sync_enter(id obj)
+{
+    int result = OBJC_SYNC_SUCCESS;
+    if (obj) {
+        SyncData* data = id2data(obj, ACQUIRE);
+        require_action_string(data != NULL, done, result = OBJC_SYNC_NOT_INITIALIZED, &quot;id2data failed&quot;);
+        result = recursive_mutex_lock(&amp;data-&gt;mutex);
+        require_noerr_string(result, done, &quot;mutex_lock failed&quot;);
+    } else {
+        // @synchronized(nil) does nothing
+        if (DebugNilSync) {
+            _objc_inform(&quot;NIL SYNC DEBUG: @synchronized(nil); set a breakpoint on objc_sync_nil to debug&quot;);
+        }
+        objc_sync_nil();
+    }
+done: 
+    return result;
+}
+
+
+int objc_sync_exit(id obj)
+{
+    int result = OBJC_SYNC_SUCCESS;
+
+    if (obj) {
+        // 通过id2data获取SyncData
+        SyncData* data = id2data(obj, RELEASE); 
+        if (!data) {
+            result = OBJC_SYNC_NOT_OWNING_THREAD_ERROR;
+        } else {
+            // 将SyncData的锁进行解锁
+            bool okay = data-&gt;mutex.tryUnlock();
+            if (!okay) {
+                result = OBJC_SYNC_NOT_OWNING_THREAD_ERROR;
+            }
+        }
+    } else {
+        // 处理传入obj为nil情况
+        // @synchronized(nil) does nothing
+    }
+
+
+    return result;
+}</code></pre><p>我们发现，这两个方法，都对我们传入的对象做了判断，当我们传入的对象为nil时，objc_sync_enter和objc_sync_exit都么有做任何操作，相当于我们么有加锁，当我们传入的对象不为空时，objc_sync_enter方法为对象加了个递归锁recursive_mutex_lock，这也是@synchronized可以互相嵌套的原因。当我们在代码执行的过程中，将传入的对象置为nil时，由于局部变量_sync_obj的引用，传入的对象并么有释放，由于加锁和解锁都是针对于局部变量_sync_obj，所以可以正常的释放锁。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>1、@synchronized内部使用了递归锁，因此是可以嵌套的，如果嵌套锁的对象是同一个对象，不会导致死锁。如果是不同的对象，并且造成互相等待的情况，是有可能导致死锁的。</p>
+<p>2、@synchronized传入的对象为nil时，其内部不做任何处理，也就是说相当于么有加锁。</p>
+<p>3、@synchronized传入的对象在代码执行过程中被置为nil，也么有任何问题，锁任然可以正常的释放。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/ssh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1990,149 +2274,11 @@ CFRelease(boxPath);</code></pre><p>3、NSTimer内存泄露</p>
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/iOS-Sign/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/iOS-Sign/" itemprop="url">iOS签名机制</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:59:27+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="iOS-App签名机制"><a href="#iOS-App签名机制" class="headerlink" title="iOS App签名机制"></a>iOS App签名机制</h3><p>流程图如下:<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/app_sign.png" alt="app_sign.png"></p>
-<h4 id="实际操作流程"><a href="#实际操作流程" class="headerlink" title="实际操作流程"></a>实际操作流程</h4><p>1、在<code>keychain</code>里从 证书颁发机构请求证书。此时，便在本地生成了一对公私钥(公钥L,私钥L)，我们得到的<code>certSigningRequest</code>文件即是公钥L，私钥L保存在我们的本地电脑里。</p>
-<p>2、将<code>certSigningRequest</code>文件传到Apple后台，Apple用自己的私钥A对这个文件进行签名，得到开发证书。将该证书下载到本地。<br>这时本地有两个证书，一个是第1步生成的，一个是这里下载回来的，keychain会把这两个证书关联起来，因为它们的公私钥是对应的，在Xcode选择下载回来的证书时，实际上会找到keychain里面对应的私钥L去签名。这里私钥L只有生成它的这台Mac才有，如果别的Mac也要编译签名这个App，怎么办？答案是把私钥导出给其他Mac使用，在keychain里面导出私钥，就会存成.p12文件，其他Mac打开后就导入私钥。</p>
-<p>3、在苹果后台配置AppID、App使用权限、设备ID列表等。加上第2步的cer证书，组成的数据用私钥A进行签名，把数据和签名一起组成一个描述文件Provisioning Profile，将其下载到Mac本机。</p>
-<p>4、开发时，Xcode会通过第2步下载回来的cer证书(存着本地公钥L)，在本地找到对应的私钥L(第1步生成的)，然后用私钥L去签名App，并把Provisioning Profile文件命名为embedded.mobileprovision一起打包到App中。这里对App的签名数据保存分为两部分，Mach-O可执行文件会把签名直接写入这个文件里，其他资源文件则会保存在_CodeSignature目录下</p>
-<p>5、安装时，iOS系统取得证书，通过系统内置的公钥A，去验证 embedded.mobileprovision的数字签名是否正确，里面的证书签名也会再验一遍。</p>
-<p>6、确保了embedded.mobileprovision里的数据都是苹果授权以后，就可以取出里面的数据，做各种验证，包括用公钥L验证APP签名，验证设备ID是否在ID列表上，AppID是否对应得上，权限开关是否跟APP里的Entitlements对应等。</p>
-<pre><code>Note: 
-
-证书：内容是公钥或私钥，由其他机构对其签名组成的数据包。
-Entitlements：包含了App权限开关列表。
-CertificateSigningRequest：本地公钥。
-.p12：本地私钥，可以导入到其他电脑。
-Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后台私钥签名的数据包。</code></pre><h3 id="Question-amp-amp-Answer"><a href="#Question-amp-amp-Answer" class="headerlink" title="Question &amp;&amp; Answer"></a>Question &amp;&amp; Answer</h3><p><strong>Q1、为什么团队开发，真机调试需要 p12 文件？</strong></p>
-<p>在Xcode选择下载回来的cer证书时，实际上会找到keychain里面对应的私钥L去签名。这个私钥L只有生成它的这台Mac才有，如果别的Mac也要编译签名这个App，则需要把私钥L导出给其他Mac使用，在keychain里面导出第二步下载安装的cer文件，就会存成.p12文件，其含有私钥L，其他Mac打开后就导入私钥。</p>
-<p><strong>Q2、为什么证书过期了，AppStore发布的app还可以正常使用？</strong></p>
-<p>因为上传到AppStore的ipa，苹果会重新对内容加密，原来的本地私钥L签名就没有用了，需要重新签名，从AppStore下载的包苹果也并不打算控制它的有效期，不需要内置一个embedded.mobileprovision去做校验，直接在苹果用后台的私钥A重新签名，iOS安装时用本地公钥A验证App签名就可以了。</p>
-<p><strong>Q3、既然发布后的App不需要各种证书，为什么发布AppStore的包还是要跟开发版一样搞各种证书和Provisioning Profile？</strong></p>
-<p>猜测因为苹果想做统一管理，Provisioning Profile里包含一些权限控制，AppID 的检验等，苹果不想在上传AppStore 包时重新用另一种协议做一遍这些验证，就不如统一把这部分放在 Provisioning Profile里，上传AppStore时只要用同样的流程验证这个 Provisioning Profile是否合法就可以了</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2180,7 +2326,7 @@ Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
