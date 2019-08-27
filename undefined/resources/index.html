@@ -79,19 +79,17 @@
 
 
 
-<meta name="description" content="Charles抓包原理HTTPS为了兼顾安全与效率，同时使用了对称加密和非对称加密。数据是被对称加密传输的，对称加密过程需要客户端的一个密钥，为了确保能把该密钥安全传输到服务器端，采用非对称加密对该密钥进行加密传输，总的来说，对数据进行对称加密，对称加密所要使用的密钥通过非对称加密传输。 Charles抓包采用的是中间人代理的模式  1、客户端向服务器请求CA证书 2、Charles拦截客户端的请">
+<meta name="description" content="资源 runtime源码地址 https://opensource.apple.com/source/objc4/  runtime源码下载地址 https://opensource.apple.com/tarballs/objc4/  GCD源码下载地址 https://opensource.apple.com/tarballs/libdispatch/    Apple开源项目地址 https">
 <meta property="og:type" content="article">
-<meta property="og:title" content="charles原理">
-<meta property="og:url" content="https://blog.lemongame.top/undefined/charles原理/index.html">
+<meta property="og:title" content="iOS资源地址">
+<meta property="og:url" content="https://blog.lemongame.top/undefined/resources/index.html">
 <meta property="og:site_name" content="Lemon&#39;s Blog">
-<meta property="og:description" content="Charles抓包原理HTTPS为了兼顾安全与效率，同时使用了对称加密和非对称加密。数据是被对称加密传输的，对称加密过程需要客户端的一个密钥，为了确保能把该密钥安全传输到服务器端，采用非对称加密对该密钥进行加密传输，总的来说，对数据进行对称加密，对称加密所要使用的密钥通过非对称加密传输。 Charles抓包采用的是中间人代理的模式  1、客户端向服务器请求CA证书 2、Charles拦截客户端的请">
+<meta property="og:description" content="资源 runtime源码地址 https://opensource.apple.com/source/objc4/  runtime源码下载地址 https://opensource.apple.com/tarballs/objc4/  GCD源码下载地址 https://opensource.apple.com/tarballs/libdispatch/    Apple开源项目地址 https">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/charles.png">
-<meta property="og:updated_time" content="2019-08-27T10:46:33.752Z">
+<meta property="og:updated_time" content="2019-08-27T11:23:38.090Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="charles原理">
-<meta name="twitter:description" content="Charles抓包原理HTTPS为了兼顾安全与效率，同时使用了对称加密和非对称加密。数据是被对称加密传输的，对称加密过程需要客户端的一个密钥，为了确保能把该密钥安全传输到服务器端，采用非对称加密对该密钥进行加密传输，总的来说，对数据进行对称加密，对称加密所要使用的密钥通过非对称加密传输。 Charles抓包采用的是中间人代理的模式  1、客户端向服务器请求CA证书 2、Charles拦截客户端的请">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/xuehan111/images/master/charles.png">
+<meta name="twitter:title" content="iOS资源地址">
+<meta name="twitter:description" content="资源 runtime源码地址 https://opensource.apple.com/source/objc4/  runtime源码下载地址 https://opensource.apple.com/tarballs/objc4/  GCD源码下载地址 https://opensource.apple.com/tarballs/libdispatch/    Apple开源项目地址 https">
 
 
 
@@ -121,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="https://blog.lemongame.top/undefined/charles原理/">
+  <link rel="canonical" href="https://blog.lemongame.top/undefined/resources/">
 
 
 
 
 
-  <title>charles原理 | Lemon's Blog</title>
+  <title>iOS资源地址 | Lemon's Blog</title>
   
 
 
@@ -264,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/charles原理/">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/resources/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="疯狂小柠檬">
@@ -281,7 +279,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">charles原理</h1>
+          <h1 class="post-title" itemprop="name headline">iOS资源地址</h1>
         
 
         <div class="post-meta">
@@ -293,7 +291,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:45:49+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:20:55+08:00">
                 2019-08-27
               </time>
             
@@ -331,18 +329,28 @@
       
 
       
-        <h3 id="Charles抓包原理"><a href="#Charles抓包原理" class="headerlink" title="Charles抓包原理"></a>Charles抓包原理</h3><p>HTTPS为了兼顾安全与效率，同时使用了对称加密和非对称加密。数据是被对称加密传输的，对称加密过程需要客户端的一个密钥，为了确保能把该密钥安全传输到服务器端，采用非对称加密对该密钥进行加密传输，总的来说，对数据进行对称加密，对称加密所要使用的密钥通过非对称加密传输。</p>
-<p>Charles抓包采用的是中间人代理的模式</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/charles.png" alt="charles.png"></p>
-<p>1、客户端向服务器请求CA证书</p>
-<p>2、Charles拦截客户端的请求，伪装成客户端向服务器请求</p>
-<p>3、服务器向客户端(Charles)返回服务器自己的CA证书</p>
-<p>4、Charles拦截服务器的响应，获取服务器证书公钥，然后自己制作一张证书，将服务器证书替换后发送给客户端。（这一步，Charles拿到了服务器证书的公钥）</p>
-<p>5、客户端接收到“服务器”（实际上是Charles）的证书后，生成一个对称密钥，用Charles的公钥加密，发送给“服务器”（Charles）</p>
-<p>6、Charles拦截客户端的响应，用自己的私钥解密对称密钥，然后用服务器证书公钥加密，发送给服务器。（这一步，Charles拿到了对称密钥</p>
-<p>7、服务器用自己的私钥解密对称密钥，向“客户端”（Charles）发送响应</p>
-<p>8、Charles拦截服务器的响应，替换成自己的证书后发送给客户端</p>
-<p>9、至此，连接建立，Charles拿到了 服务器证书的公钥 和 客户端与服务器协商的对称密钥，之后就可以解密或者修改加密的报文了。</p>
+        <h3 id="资源"><a href="#资源" class="headerlink" title="资源"></a>资源</h3><ul>
+<li><p>runtime源码地址</p>
+<p><a href="https://opensource.apple.com/source/objc4/" target="_blank" rel="noopener">https://opensource.apple.com/source/objc4/</a></p>
+</li>
+<li><p>runtime源码下载地址</p>
+<p><a href="https://opensource.apple.com/tarballs/objc4/" target="_blank" rel="noopener">https://opensource.apple.com/tarballs/objc4/</a></p>
+</li>
+<li><p>GCD源码下载地址</p>
+<p><a href="https://opensource.apple.com/tarballs/libdispatch/" target="_blank" rel="noopener">https://opensource.apple.com/tarballs/libdispatch/</a></p>
+</li>
+</ul>
+<ul>
+<li><p>Apple开源项目地址</p>
+<p><a href="https://opensource.apple.com/source/" target="_blank" rel="noopener">https://opensource.apple.com/source/</a></p>
+</li>
+<li><p>WebKit/JavaScriptCore 地址`</p>
+</li>
+</ul>
+<p><a href="https://opensource.apple.com/release/ios-110.html" target="_blank" rel="noopener">https://opensource.apple.com/release/ios-110.html</a></p>
+<ul>
+<li>十大经典排序算法（动图演示）<br><a href="https://www.cnblogs.com/onepixel/p/7674659.html" target="_blank" rel="noopener">https://www.cnblogs.com/onepixel/p/7674659.html</a></li>
+</ul>
 
       
     </div>
@@ -367,8 +375,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/undefined/block/" rel="next" title="block">
-                <i class="fa fa-chevron-left"></i> block
+              <a href="/undefined/OC与JS交互原理/" rel="next" title="OC与JS交互原理">
+                <i class="fa fa-chevron-left"></i> OC与JS交互原理
               </a>
             
           </div>
@@ -376,10 +384,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/undefined/clang/" rel="prev" title="clang">
-                clang <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -495,7 +499,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Charles抓包原理"><span class="nav-number">1.</span> <span class="nav-text">Charles抓包原理</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#资源"><span class="nav-number">1.</span> <span class="nav-text">资源</span></a></li></ol></div>
             
 
           </div>
