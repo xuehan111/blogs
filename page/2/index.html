@@ -259,6 +259,369 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/git命令/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/git命令/" itemprop="url">git命令</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:57:36+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="git命令"><a href="#git命令" class="headerlink" title="git命令"></a>git命令</h3><ul>
+<li>git hash-object -w 文件名</li>
+</ul>
+<p>存储数据对象,输出一个长度为 40 个字符的校验和。 这是一个 SHA-1 哈希值——一个将待存储的数据外加一个头部信息（header）一起做 SHA-1 校验运算而得的校验和</p>
+<ul>
+<li><p>git cat-file -p SHA-1值</p>
+<p>查看文件内容</p>
+</li>
+<li><p>git cat-file -t SHA-1值</p>
+<p>  查看git内部存储文件的对象类型</p>
+</li>
+<li><p>git cat-file -p 分支名称^{tree}</p>
+<p>  查看指定分支的树结构</p>
+</li>
+<li><p>git update-index –add –cacheinfo 100644 \</p>
+<p>创建一个暂存区，并将文件添加到暂存区。</p>
+<p>100644:表明这是一个普通文件</p>
+<p>100755:表示一个可执行文件</p>
+<p>120000:表示一个符号链接</p>
+</li>
+<li><p>git write-tree</p>
+<p>  将暂存区内容写入一个树对象</p>
+</li>
+<li><p>git update-ref refs/heads/newbranch commit的sha值</p>
+<p>  更新分支引用，相当于创建了 newbranch 分支。</p>
+<p>  当运行类似于 git branch (branchname) 这样的命令时，Git 实际上会运行 update-ref 命令，取得当前所在分支最新提交对应的 SHA-1 值，并将其加入你想要创建的任何新引用中</p>
+</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/git/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/git/" itemprop="url">git</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:53:38+08:00">
+                2019-08-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="Git"><a href="#Git" class="headerlink" title="Git"></a>Git</h3><h4 id="git流程图"><a href="#git流程图" class="headerlink" title="git流程图"></a>git流程图</h4><p>git的大致流程图入下:</p>
+<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/git%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="git流程图.png"></p>
+<ul>
+<li>Workspace：工作区</li>
+<li>Index / Stage：暂存区</li>
+<li>Repository：本地仓库</li>
+<li>Remote：远程仓库</li>
+</ul>
+<p>1.Workspace 工作区</p>
+<p>正在编辑的文件状态。该区域下的下的文件状态为未跟踪（untrack）状态。</p>
+<p>通过git pull把远程仓库中的文件同步到工作区</p>
+<p>2.Index/Stage 暂存区</p>
+<p>保存了下次将提交的文件列表信息。该区域的文件状态为已暂存状态。</p>
+<p>通过git add把Workspace区域中的文件提交到暂存区中</p>
+<p>3.Repository 本地仓库</p>
+<p>本地仓库就是从服务器上复制到本地的一份代码，所做的操作都是对这个仓库发生的。</p>
+<p>通过git commit把文件提交到本地仓库中。</p>
+<p>4.远程仓库</p>
+<p>远程仓库也就是我们所说的服务器端，最终，我们需要将本地仓库中的改动同步到远程仓库。</p>
+<p>通过git push把本地仓库中的文件推送到远程仓库中。</p>
+<h4 id="git内部原理详解"><a href="#git内部原理详解" class="headerlink" title="git内部原理详解"></a>git内部原理详解</h4><p>git内部存储数据有三种对象类型：blob对象、commit对象、tree对象。其都存储在.git文件夹下的objects下。git使用文件内容+特定头部信息一起的SHA-1 校验和为文件命名，校验和的前两个字符用于命名子目录，余下的 38 个字符则用作文件名。</p>
+<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/git_objects.jpg" alt="git_objects.jpg"></p>
+<ul>
+<li><p>blob对象</p>
+<p>这是git存储文件内容的方式。每一个文件都会对应一个blob对象。我们对同一个文件的每次add 操作，即添加到暂存区，都会生成一个新blob对象。</p>
+<p>我们初始化个git项目: git init Demo</p>
+<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/git_init.jpg" alt="git_init"></p>
+<p>我们会发现git已经帮我们生成了objects文件夹，并且该文件夹下包含info和pack空文件夹。因为我们还么有向Dmeo中添加文件，所以objects文件夹下，并么有blob对象。我们向项目Demo中添加个文件</p>
+<pre><code>$ echo &quot;a&quot; &gt;&gt; a.txt
+ $ git add a.txt</code></pre><p>执行后发现objects文件夹下多了个文件夹，其文件夹名称加上子文件的名称就是a.txt对应的blob对象的sha-1校验和, 78981922613b2afb6025042ff6bd878ac1994e85</p>
+<p> <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_addfile.jpg" alt="git_addfile.jpg">;</p>
+<p> 我们可以使用 <code>git cat-file -t sha-1值</code> 来查看文件类型</p>
+<pre><code> $ git cat-file -t 78981922613b2afb6025042ff6bd878ac1994e85
+
+执行后，输出
+
+    blob</code></pre><p>我们对a.txt 做下修改:</p>
+<pre><code>$ echo &quot;aaa&quot; &gt;&gt; a.txt
+$ git add a.txt</code></pre><p>此时，objects文件夹下多了个文件夹cd,其对应我们修改后的blob对象:</p>
+</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/git_changefile.jpg" alt="git_changefile.jpg"></p>
+<p>  虽然我们修改的是同一个文件a.txt，但是git对我们每一次的修改都生成了一个blob文件。</p>
+<ul>
+<li><p>Tree 对象</p>
+<p>  blob对象，对应我们项目中的文件，而tree对象对应项目中的目录，即文件夹。一个Tree对象包含了一条或多条Tree对象记录，每条记录含有一个指向blob对象或者子tree对象的 SHA-1 指针，以及相应的模式、类型、文件名信息。</p>
+<p>  我们对刚才的项目做下改动:<br>  <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_tree0.jpg" alt="git_tree0.jpg"></p>
+<p>  执行 <code>git add .</code>将改动添加到暂存区。 通常，Git 根据某一时刻暂存区（即 index 区域）所表示的状态创建并记录一个对应的树对象。我们可以可以通过 <code>write-tree</code> 命令将暂存区内容写入一个树对象.然后观察它的结构:</p>
+<pre><code>$ git write-tree
+d48fb57270ffcedfa7a9bce975c3883b531e3f73
+$ git cat-file -p d48fb57270ffcedfa7a9bce975c3883b531e3f73
+100644 blob 3cadea260b677e4265363400d2dd6bd2f950d4bf    README.md
+100644 blob cd974dc3ea825c2145d68606da683dd0532d7b6e    a.txt
+040000 tree f8f7aefc2900a3d737cea9eee45729fd55761e1a    lib
+$ git cat-file -p f8f7aefc2900a3d737cea9eee45729fd55761e1a
+100644 blob 61780798228d17af2d34fce4cfbdf35556832472    b.txt</code></pre><p>  可以看出，项目的tree结构是这样的:</p>
+<p>  <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_tree.png" alt="git_tree.png"></p>
+</li>
+<li><p>Commit 对象    </p>
+<p>  当我们在执行<code>git commit</code>操作的时候，git会将暂存区的状态，记录成对应的树对象，并且创建一个commit对象来记录当前树的信息。</p>
+<p>  我们可以提交一下，然后用命令 来查看提交信息</p>
+<pre><code>$ git commit -m &quot;第一次提交&quot;
+
+[master (root-commit) d320bb7] 第一次提交
+3 files changed, 4 insertions(+)
+create mode 100644 README.md
+create mode 100644 a.txt
+create mode 100644 lib/b.txt</code></pre><p>  查看提交日志</p>
+<pre><code>$ git log
+
+commit d320bb785006e604d3b7072a532cae78a37142f6 (HEAD -&gt; master)
+Author: xiaobai &lt;madd@smartoven.tech&gt;
+Date:   Wed Jun 12 14:13:29 2019 +0800
+
+第一次提交</code></pre><p>  查看提交对象:</p>
+<pre><code>$ git cat-file -p d320bb
+tree d48fb57270ffcedfa7a9bce975c3883b531e3f73
+author xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
+committer xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
+
+第一次提交</code></pre><p>  可以看到:</p>
+<p>  <strong>提交对象的格式很简单：它先指定一个顶层tree对象(d48fb5)，代表当前项目快照；然后是作者/提交者信息（依据你的 user.name 和 user.email 配置来设定，外加一个时间戳）；留空一行，最后是提交注释。</strong></p>
+<p>  <strong>另外有个信息，我们么有看到，就是每一个commit对象都有一个指针指向其父commit对象(上一次提交的commit对象)</strong></p>
+</li>
+<li><p>小结: </p>
+<p>  <strong>以上是每次我们运行 git add 和 git commit 命令时， Git 所做的实质工作——将被改写的文件保存为数据对象，更新暂存区，记录树对象，最后创建一个指明了顶层树对象和父提交的提交对象。 这三种主要的 Git 对象——数据对象、树对象、提交对象——最终均以单独文件的形式保存在 .git/objects 目录下</strong></p>
+</li>
+</ul>
+<h4 id="git分支"><a href="#git分支" class="headerlink" title="git分支"></a>git分支</h4><p>在项目初始化的时候，我们可以看到 .git 文件夹下有个HEAD文件:</p>
+<p> HEAD 文件是一个符号引用，指向当前所在的分支。 所谓符号引用，意味着它并不像普通引用那样包含一个 SHA-1 值——它是一个指向其他引用的指针。</p>
+<p> 当我们执行 git commit 时，该命令会创建一个提交对象，并用 HEAD 文件中那个引用所指向的 SHA-1 值设置其父提交字段</p>
+<p> 另外我们还可以看到 .git 文件夹下有个refs文件夹，其子文件heads存放着每一个分支的最后一次提交时的commit对象的 sha-1值。<br> <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_refs.jpg" alt="git_refs.jpg"></p>
+<p>  git 分支的本质其实就是一个指向某一系列提交之首的指针或引用。当我们创建分支的时候，git会在refs文件夹下的heads文件夹中新建一个分支引用文件，然后根据HEAD文件，找到当前分支的最后一次提交commit对象的 sha-1值，写入这个分支引用文件中，之后的每次提交，都会更新这个分支引用文件为最新的提交commit对象的 sha-1值。</p>
+<p>  git分支的切换，其实就是根据refs下的heads文件夹，找到分支的引用，然后根据分支引用中的commit对象来读取数据，同时，修改HEAD中的值为当前分支。</p>
+<p>  git分支的切换.如图</p>
+<p>  <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_merge.png" alt="git_merge.png"></p>
+<p>  Branch 1 和 Branch 2分支进行mrege的时候，会根据C3、C4、找到这个提交的共同祖先C1，然后进行三方合并，并把合并结果重新做一个新的快照，并自动创建一个指向它的提交对象（C5）<br>  <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_merge_result.png" alt="git_merge_result.png"></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/gcd/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1805,7 +2168,7 @@ int main(int argc, const char * argv[]) {
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-count">20</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
