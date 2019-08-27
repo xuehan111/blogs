@@ -79,17 +79,17 @@
 
 
 
-<meta name="description" content="OC中的锁1、NSLock NSLock是一个互斥锁。其使用方式如下: - (void)demoAction {    [self.lock lock];    //TODO: do your action    [self.lock unlock]; }当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安">
+<meta name="description" content="OC中的锁NSLockNSLock是一个互斥锁。其使用方式如下: - (void)demoAction {    [self.lock lock];    //TODO: do your action    [self.lock unlock]; }当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安全。但">
 <meta property="og:type" content="article">
 <meta property="og:title" content="oc锁">
 <meta property="og:url" content="https://blog.lemongame.top/undefined/oc锁/index.html">
 <meta property="og:site_name" content="Lemon&#39;s Blog">
-<meta property="og:description" content="OC中的锁1、NSLock NSLock是一个互斥锁。其使用方式如下: - (void)demoAction {    [self.lock lock];    //TODO: do your action    [self.lock unlock]; }当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安">
+<meta property="og:description" content="OC中的锁NSLockNSLock是一个互斥锁。其使用方式如下: - (void)demoAction {    [self.lock lock];    //TODO: do your action    [self.lock unlock]; }当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安全。但">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-08-27T11:11:35.467Z">
+<meta property="og:updated_time" content="2019-08-27T11:14:32.831Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="oc锁">
-<meta name="twitter:description" content="OC中的锁1、NSLock NSLock是一个互斥锁。其使用方式如下: - (void)demoAction {    [self.lock lock];    //TODO: do your action    [self.lock unlock]; }当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安">
+<meta name="twitter:description" content="OC中的锁NSLockNSLock是一个互斥锁。其使用方式如下: - (void)demoAction {    [self.lock lock];    //TODO: do your action    [self.lock unlock]; }当一个线程进行访问的时候，该线程获得锁，其他线程进行访问的时候，将被操作系统挂起，直到该线程释放锁，其他线程才能对其进行访问，从而却确保了线程安全。但">
 
 
 
@@ -329,8 +329,7 @@
       
 
       
-        <h3 id="OC中的锁"><a href="#OC中的锁" class="headerlink" title="OC中的锁"></a>OC中的锁</h3><p>1、NSLock</p>
-<p>NSLock是一个互斥锁。其使用方式如下:</p>
+        <h3 id="OC中的锁"><a href="#OC中的锁" class="headerlink" title="OC中的锁"></a>OC中的锁</h3><h4 id="NSLock"><a href="#NSLock" class="headerlink" title="NSLock"></a>NSLock</h4><p>NSLock是一个互斥锁。其使用方式如下:</p>
 <pre><code>- (void)demoAction {
    [self.lock lock];
    //TODO: do your action
@@ -344,19 +343,16 @@
    [self.lock unlock];
    [self.lock unlock];
 }</code></pre><p>上面的这种情况会造成死锁。</p>
-<p>2、NSRecursiveLock 递归锁</p>
-<p>递归锁，允许在同一个线程中多次获得锁，而不会造成死锁。</p>
+<h4 id="NSRecursiveLock-递归锁"><a href="#NSRecursiveLock-递归锁" class="headerlink" title="NSRecursiveLock 递归锁"></a>NSRecursiveLock 递归锁</h4><p>递归锁，允许在同一个线程中多次获得锁，而不会造成死锁。</p>
 <pre><code>void recursiveAction(int count) {
     [_recursiveLock lock];
     if(count &lt;= 0) return;
     NSLog(@&quot;%d&quot;,count);
     recursiveAction(--count);
     [_recursiveLock unlock];
-}</code></pre><p>3、@synchronized 便捷的创建互斥锁的方式</p>
-<pre><code>@synchronized (self) {
+}</code></pre><h4 id="synchronized-便捷的创建互斥锁的方式"><a href="#synchronized-便捷的创建互斥锁的方式" class="headerlink" title="@synchronized 便捷的创建互斥锁的方式"></a>@synchronized 便捷的创建互斥锁的方式</h4><pre><code>@synchronized (self) {
     // action
-}</code></pre><p> 4、NSCondition</p>
-<p> 条件锁，通过它可以实现不同线程的调度。一个线程被某一个条件所阻塞，直到另一个线程满足该条件从而发送信号给该线程使得该线程可以正确的执行。</p>
+}</code></pre><h4 id="NSCondition"><a href="#NSCondition" class="headerlink" title="NSCondition"></a>NSCondition</h4><p> 条件锁，通过它可以实现不同线程的调度。一个线程被某一个条件所阻塞，直到另一个线程满足该条件从而发送信号给该线程使得该线程可以正确的执行。</p>
 <pre><code> - (void)action1 {
     [self.condition lock];
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
@@ -373,8 +369,7 @@
     }
     // TODO: action2
     [self.condition unlock];
-}</code></pre><p>5、NSConditionLock</p>
-<p>该对象所定义的互斥锁可以在使得在某个条件下进行锁定和解锁。它和 NSCondition 很像，但实现方式是不同的。</p>
+}</code></pre><h4 id="NSConditionLock"><a href="#NSConditionLock" class="headerlink" title="NSConditionLock"></a>NSConditionLock</h4><p>该对象所定义的互斥锁可以在使得在某个条件下进行锁定和解锁。它和 NSCondition 很像，但实现方式是不同的。</p>
 <p>当两个线程需要特定顺序执行的时候，例如生产者消费者模型，则可以使用 NSConditionLock 。当生产者执行执行的时候，消费者可以通过特定的条件获得锁，当生产者完成执行的时候，它将解锁该锁，然后把锁的条件设置成唤醒消费者线程的条件。锁定和解锁的调用可以随意组合，lock 和 unlockWithCondition: 配合使用 lockWhenCondition: 和 unlock 配合使用</p>
 <pre><code>- (void)producer {
     while (YES) {
@@ -391,8 +386,7 @@
         self.count--;
         [self.conditionLock unlockWithCondition:0];
     }
-}</code></pre><p>6、pthread_mutex</p>
-<p>POSIX 互斥锁是一种超级易用的互斥锁，使用的时候，只需要初始化一个 pthread_mutex_t 用 pthread_mutex_lock 来锁定 pthread_mutex_unlock 来解锁，当使用完成后，记得调用 pthread_mutex_destroy 来销毁锁。</p>
+}</code></pre><h4 id="pthread-mutex"><a href="#pthread-mutex" class="headerlink" title="pthread_mutex"></a>pthread_mutex</h4><p>POSIX 互斥锁是一种超级易用的互斥锁，使用的时候，只需要初始化一个 pthread_mutex_t 用 pthread_mutex_lock 来锁定 pthread_mutex_unlock 来解锁，当使用完成后，记得调用 pthread_mutex_destroy 来销毁锁。</p>
 <pre><code>pthread_mutex_t lock;
 pthread_mutex_init(&amp;lock,NULL);
 pthread_mutex_lock(&amp;lock);
@@ -408,8 +402,7 @@ pthread_mutex_init(&amp;lock,&amp;mattr);
 pthread_mutex_lock(&amp;lock);
 // TODO: 
 pthread_mutex_unlock(&amp;lock);
-pthread_mutex_destroy(&amp;lock);</code></pre><p> 7、pthread_rwlock 读写锁</p>
-<p> 读写锁，在对文件进行操作的时候，写操作是排他的，一旦有多个线程对同一个文件进行写操作，后果不可估量，但读是可以的，多个线程读取时没有问题的。</p>
+pthread_mutex_destroy(&amp;lock);</code></pre><h4 id="pthread-rwlock-读写锁"><a href="#pthread-rwlock-读写锁" class="headerlink" title="pthread_rwlock 读写锁"></a>pthread_rwlock 读写锁</h4><p> 读写锁，在对文件进行操作的时候，写操作是排他的，一旦有多个线程对同一个文件进行写操作，后果不可估量，但读是可以的，多个线程读取时没有问题的。</p>
 <ul>
 <li>当读写锁被一个线程以读模式占用的时候，写操作的其他线程会被阻塞，读操作的其他线程还可以继续进行。</li>
 <li>当读写锁被一个线程以写模式占用的时候，写操作的其他线程会被阻塞，读操作的其他线程也被阻塞。</li>
@@ -424,8 +417,7 @@ pthread_mutex_destroy(&amp;lock);</code></pre><p> 7、pthread_rwlock 读写锁</
     pthread_rwlock_wrlock(&amp;rwlock);
     // TODO: 写文件
     pthread_rwlock_unlock(&amp;rwlock);
-}</code></pre><p>8、POSIX Conditions 条件锁</p>
-<p>POSIX条件锁和NSCondition条件锁类似，只不过POSIX条件锁偏底层实现。</p>
+}</code></pre><h4 id="POSIX-Conditions-条件锁"><a href="#POSIX-Conditions-条件锁" class="headerlink" title="POSIX Conditions 条件锁"></a>POSIX Conditions 条件锁</h4><p>POSIX条件锁和NSCondition条件锁类似，只不过POSIX条件锁偏底层实现。</p>
 <pre><code>pthread_mutex_t p_mutex_lock;
 pthread_cond_t p_condition;
 
@@ -450,8 +442,7 @@ pthread_cond_init(&amp;p_condition, NULL);
     }
     NSLog(@&quot;action2&quot;);
     pthread_mutex_unlock(&amp;p_mutex_lock);
-}</code></pre><p>9、OSSpinLock 自旋锁</p>
-<p>自旋锁和互斥锁的区别在于：</p>
+}</code></pre><h4 id="OSSpinLock-自旋锁"><a href="#OSSpinLock-自旋锁" class="headerlink" title="OSSpinLock 自旋锁"></a>OSSpinLock 自旋锁</h4><p>自旋锁和互斥锁的区别在于：</p>
 <ul>
 <li>互斥锁，当一个线程获得这个锁之后，其他想要获得此锁的线程将会被阻塞，直到该锁被释放</li>
 <li>自旋锁：当一个线程获得锁之后，其他线程将会一直循环在哪里查看是否该锁被释放</li>
@@ -608,7 +599,7 @@ OSSpinLockUnlock(&amp;spinLock);</code></pre><p> ** 由于安全问题，OSSpinL
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#OC中的锁"><span class="nav-number">1.</span> <span class="nav-text">OC中的锁</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#OC中的锁"><span class="nav-number">1.</span> <span class="nav-text">OC中的锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NSLock"><span class="nav-number">1.1.</span> <span class="nav-text">NSLock</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NSRecursiveLock-递归锁"><span class="nav-number">1.2.</span> <span class="nav-text">NSRecursiveLock 递归锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#synchronized-便捷的创建互斥锁的方式"><span class="nav-number">1.3.</span> <span class="nav-text">@synchronized 便捷的创建互斥锁的方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NSCondition"><span class="nav-number">1.4.</span> <span class="nav-text">NSCondition</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NSConditionLock"><span class="nav-number">1.5.</span> <span class="nav-text">NSConditionLock</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pthread-mutex"><span class="nav-number">1.6.</span> <span class="nav-text">pthread_mutex</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pthread-rwlock-读写锁"><span class="nav-number">1.7.</span> <span class="nav-text">pthread_rwlock 读写锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#POSIX-Conditions-条件锁"><span class="nav-number">1.8.</span> <span class="nav-text">POSIX Conditions 条件锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OSSpinLock-自旋锁"><span class="nav-number">1.9.</span> <span class="nav-text">OSSpinLock 自旋锁</span></a></li></ol></li></ol></div>
             
 
           </div>
