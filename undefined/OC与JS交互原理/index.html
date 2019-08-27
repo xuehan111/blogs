@@ -87,7 +87,7 @@
 <meta property="og:description" content="前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function A(){retu">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png">
-<meta property="og:updated_time" content="2019-08-27T11:18:06.683Z">
+<meta property="og:updated_time" content="2019-08-27T11:19:34.846Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="OC与JS交互原理">
 <meta name="twitter:description" content="前言OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。 OC 与 JS 交互示例OC调用JS方法NSString *jsCode = @&amp;quot;function A(){retu">
@@ -350,7 +350,54 @@ context[@&quot;test&quot;] =  ^() {
 <p> JSContext 的属性中有个 globalObject对象，它返回当前执行JSContext的全局对象，这个globalObject对象就是 JSContext的核心。我们在原生中对js的交互，其实就是在跟这个对象交互。globalObject对象存储了我们注入到JS中的原生方法以及我们在执行JS代码后，生成的变量和函数。在WebKit中，JSContext返回的global对象就是 Window对象。</p>
 <h4 id="JSValue"><a href="#JSValue" class="headerlink" title="JSValue"></a>JSValue</h4><p>OC 是不可以直接使用 JS 的变量和函数的，同时，JS 也是不可以直接使用 OC 的变量和方法的。因此，需要经过转化之后才可以使用。JSValue 可以实现OC 和 JS值的相互转化。一个JSValue 代表了一个JS值的引用。</p>
 <p>OC 和 JS 类型转化关系如下:</p>
-<p>  Objective-C type   |   JavaScript type<br> ——————–+———————<br>         nil         |     undefined<br>        NSNull       |        null<br>       NSString      |       string<br>       NSNumber      |   number, boolean<br>     NSDictionary    |   Object object<br>       NSArray       |    Array object<br>        NSDate       |     Date object<br>       NSBlock       |   Function object<br>          id         |   Wrapper object<br>        Class        | Constructor object </p>
+<table>
+<thead>
+<tr>
+<th>Objective-C type</th>
+<th>JavaScript type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>nil</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>NSNull</td>
+<td>null</td>
+</tr>
+<tr>
+<td>NSString</td>
+<td>string</td>
+</tr>
+<tr>
+<td>NSNumber</td>
+<td>number, boolean</td>
+</tr>
+<tr>
+<td>NSDictionary</td>
+<td>Object object</td>
+</tr>
+<tr>
+<td>NSArray</td>
+<td>Array object</td>
+</tr>
+<tr>
+<td>NSDate</td>
+<td>Date object</td>
+</tr>
+<tr>
+<td>NSBlock</td>
+<td>Function object</td>
+</tr>
+<tr>
+<td>id</td>
+<td>Wrapper object</td>
+</tr>
+<tr>
+<td>Class</td>
+<td>Constructor object</td>
+</tr>
+</tbody></table>
 <h5 id="NSDictionary-lt-—-gt-js-Object"><a href="#NSDictionary-lt-—-gt-js-Object" class="headerlink" title="NSDictionary &lt;—&gt; js Object"></a>NSDictionary &lt;—&gt; js Object</h5><p> OC 的 NSDictionary是key，value键值对形式，JS 的 Object 也是 键值(key,value)的形式.因此可以相互转化。</p>
 <pre><code>var person = {&quot;name&quot;: &quot;xuehan&quot;, &quot;age&quot;: 10 }; // js Object
 NSDictionary *dict = @{@&quot;name&quot;: @&quot;xuehan&quot;, @&quot;age&quot;: @10} //  OC NSDictionary</code></pre><h5 id="NSBlock-lt-—-gt-js-Function"><a href="#NSBlock-lt-—-gt-js-Function" class="headerlink" title="NSBlock &lt;—&gt; js Function"></a>NSBlock &lt;—&gt; js Function</h5><p> OC 中的Block，本质上就是一个包裹了函数指针的类。而 JS 中的函数实际上也是一个”Function”类型的对象，函数名 其实就是指向一个函数对象的引用。因此可以相互转化</p>
