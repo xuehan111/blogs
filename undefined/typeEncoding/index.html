@@ -86,7 +86,7 @@
 <meta property="og:site_name" content="Lemon&#39;s Blog">
 <meta property="og:description" content="类型编码(TypeEncodings)类型编码为了帮助运行时系统，编译器将每个方法的返回值和参数编码成一个C字符串，并将这个字符串和OC的方法选择器进行关联。我们可以用编译器指令@encode来获取这个C字符串。当你给一个指定的类型(这个类型可以是基本数据类型，如int，可以是一个指针，一个结构体，类名等，也就是可以作为sizeof()参数的任何类型),@encode会返回一个将这个类型编码后的C">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-08-27T11:55:20.574Z">
+<meta property="og:updated_time" content="2019-08-28T05:51:34.507Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="类型编码">
 <meta name="twitter:description" content="类型编码(TypeEncodings)类型编码为了帮助运行时系统，编译器将每个方法的返回值和参数编码成一个C字符串，并将这个字符串和OC的方法选择器进行关联。我们可以用编译器指令@encode来获取这个C字符串。当你给一个指定的类型(这个类型可以是基本数据类型，如int，可以是一个指针，一个结构体，类名等，也就是可以作为sizeof()参数的任何类型),@encode会返回一个将这个类型编码后的C">
@@ -344,155 +344,155 @@
 }</code></pre><p>输出结果如下：</p>
 <pre><code>i
 f
-@</code></pre><p>下面这个列表列出了一些类型码及其代表的意义</p>
+@</code></pre><p>下面这个列表列出了一些类型码及其代表的意义:</p>
 <table>
 <thead>
 <tr>
-<th>Code</th>
-<th>Meaning</th>
+<th align="center">Code</th>
+<th align="center">Meaning</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>c</td>
-<td>A char</td>
+<td align="center">c</td>
+<td align="center">A char</td>
 </tr>
 <tr>
-<td>i</td>
-<td>An int</td>
+<td align="center">i</td>
+<td align="center">An int</td>
 </tr>
 <tr>
-<td>s</td>
-<td>A short</td>
+<td align="center">s</td>
+<td align="center">A short</td>
 </tr>
 <tr>
-<td>l</td>
-<td>A long</td>
+<td align="center">l</td>
+<td align="center">A long</td>
 </tr>
 <tr>
-<td>l</td>
-<td>is treated as a 32-bit quantity on 64-bit programs.</td>
+<td align="center">l</td>
+<td align="center">is treated as a 32-bit quantity on 64-bit programs.</td>
 </tr>
 <tr>
-<td>q</td>
-<td>A long long</td>
+<td align="center">q</td>
+<td align="center">A long long</td>
 </tr>
 <tr>
-<td>C</td>
-<td>An unsigned char</td>
+<td align="center">C</td>
+<td align="center">An unsigned char</td>
 </tr>
 <tr>
-<td>I</td>
-<td>An unsigned int</td>
+<td align="center">I</td>
+<td align="center">An unsigned int</td>
 </tr>
 <tr>
-<td>S</td>
-<td>An unsigned short</td>
+<td align="center">S</td>
+<td align="center">An unsigned short</td>
 </tr>
 <tr>
-<td>L</td>
-<td>An unsigned long</td>
+<td align="center">L</td>
+<td align="center">An unsigned long</td>
 </tr>
 <tr>
-<td>Q</td>
-<td>An unsigned long long</td>
+<td align="center">Q</td>
+<td align="center">An unsigned long long</td>
 </tr>
 <tr>
-<td>f</td>
-<td>A float</td>
+<td align="center">f</td>
+<td align="center">A float</td>
 </tr>
 <tr>
-<td>d</td>
-<td>A double</td>
+<td align="center">d</td>
+<td align="center">A double</td>
 </tr>
 <tr>
-<td>B</td>
-<td>A C++ bool or a C99 _Bool</td>
+<td align="center">B</td>
+<td align="center">A C++ bool or a C99 _Bool</td>
 </tr>
 <tr>
-<td>v</td>
-<td>A void</td>
+<td align="center">v</td>
+<td align="center">A void</td>
 </tr>
 <tr>
-<td>*</td>
-<td>A character string (char *)</td>
+<td align="center">*</td>
+<td align="center">A character string (char *)</td>
 </tr>
 <tr>
-<td>@</td>
-<td>An object (whether statically typed or typed id)</td>
+<td align="center">@</td>
+<td align="center">An object (whether statically typed or typed id)</td>
 </tr>
 <tr>
-<td>#</td>
-<td>A class object (Class)</td>
+<td align="center">#</td>
+<td align="center">A class object (Class)</td>
 </tr>
 <tr>
-<td>:</td>
-<td>A method selector (SEL)</td>
+<td align="center">:</td>
+<td align="center">A method selector (SEL)</td>
 </tr>
 <tr>
-<td>[array type]</td>
-<td>An array</td>
+<td align="center">[array type]</td>
+<td align="center">An array</td>
 </tr>
 <tr>
-<td>{name=type…}</td>
-<td>A structure</td>
+<td align="center">{name=type…}</td>
+<td align="center">A structure</td>
 </tr>
 <tr>
-<td>(name=type…)</td>
-<td>A union</td>
+<td align="center">(name=type…)</td>
+<td align="center">A union</td>
 </tr>
 <tr>
-<td>bnum</td>
-<td>A bit field of num bits</td>
+<td align="center">bnum</td>
+<td align="center">A bit field of num bits</td>
 </tr>
 <tr>
-<td>^type</td>
-<td>A pointer to type</td>
+<td align="center">^type</td>
+<td align="center">A pointer to type</td>
 </tr>
 <tr>
-<td>?</td>
-<td>An unknown type (among other things, this code is used for function pointers)</td>
+<td align="center">?</td>
+<td align="center">An unknown type (among other things, this code is used for function pointers)</td>
 </tr>
 </tbody></table>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">注意:</span><br><span class="line"></span><br><span class="line">* OC 不支持 long double类型，@encode(long double)将会返回 d ，和double类型的编码一致。</span><br><span class="line">* c 数组，在经过编码后，会在类型前加上数组的个数，如存储12个float类型的指针数组，将会返回 [12^f]</span><br><span class="line">* 类对象会被当作结构体来处理，如@encode(NSObject)将会返回&#123;NSObject=#&#125;</span><br></pre></td></tr></table></figure>
 
 <p>我们可以将列表中的这些值打印出来</p>
 <pre><code>int main(int argc, const char * argv[]) {
-  @autoreleasepool {
-    NSLog(@&quot;char --&gt; %s&quot;,@encode(char));
-    NSLog(@&quot;int --&gt; %s&quot;,@encode(int));
-    NSLog(@&quot;short --&gt; %s&quot;,@encode(short));
-    NSLog(@&quot;long --&gt; %s&quot;,@encode(long));
-    NSLog(@&quot;long long --&gt; %s&quot;,@encode(long long));
-    NSLog(@&quot;unsigned char --&gt; %s&quot;,@encode(unsigned char));
-    NSLog(@&quot;unsigned int --&gt; %s&quot;,@encode(unsigned int));
-    NSLog(@&quot;unsigned short --&gt; %s&quot;,@encode(unsigned short));
-    NSLog(@&quot;unsigned long --&gt; %s&quot;,@encode(unsigned long long));
-    NSLog(@&quot;float --&gt; %s&quot;,@encode(float));
-    NSLog(@&quot;bool --&gt; %s&quot;,@encode(bool));
-    NSLog(@&quot;void --&gt; %s&quot;,@encode(void));
-    NSLog(@&quot;char * --&gt; %s&quot;,@encode(char *));
-    NSLog(@&quot;id --&gt; %s&quot;,@encode(id));
-    NSLog(@&quot;Class --&gt; %s&quot;,@encode(Class));
-    NSLog(@&quot;SEL --&gt; %s&quot;,@encode(SEL));
-    int array[] = {1,2,3};
-    NSLog(@&quot;int[] --&gt; %s&quot;,@encode(typeof(array)));
-    typedef struct person{
-        char *name;
-        int age;
-    }Person;
-    NSLog(@&quot;struct --&gt; %s&quot;,@encode(Person));
+      @autoreleasepool {
+        NSLog(@&quot;char --&gt; %s&quot;,@encode(char));
+        NSLog(@&quot;int --&gt; %s&quot;,@encode(int));
+        NSLog(@&quot;short --&gt; %s&quot;,@encode(short));
+        NSLog(@&quot;long --&gt; %s&quot;,@encode(long));
+        NSLog(@&quot;long long --&gt; %s&quot;,@encode(long long));
+        NSLog(@&quot;unsigned char --&gt; %s&quot;,@encode(unsigned char));
+        NSLog(@&quot;unsigned int --&gt; %s&quot;,@encode(unsigned int));
+        NSLog(@&quot;unsigned short --&gt; %s&quot;,@encode(unsigned short));
+        NSLog(@&quot;unsigned long --&gt; %s&quot;,@encode(unsigned long long));
+        NSLog(@&quot;float --&gt; %s&quot;,@encode(float));
+        NSLog(@&quot;bool --&gt; %s&quot;,@encode(bool));
+        NSLog(@&quot;void --&gt; %s&quot;,@encode(void));
+        NSLog(@&quot;char * --&gt; %s&quot;,@encode(char *));
+        NSLog(@&quot;id --&gt; %s&quot;,@encode(id));
+        NSLog(@&quot;Class --&gt; %s&quot;,@encode(Class));
+        NSLog(@&quot;SEL --&gt; %s&quot;,@encode(SEL));
+        int array[] = {1,2,3};
+        NSLog(@&quot;int[] --&gt; %s&quot;,@encode(typeof(array)));
+        typedef struct person{
+            char *name;
+            int age;
+        }Person;
+        NSLog(@&quot;struct --&gt; %s&quot;,@encode(Person));
 
-    typedef union union_type{
-        char *name;
-        int a;
-    }Union;
-    NSLog(@&quot;union --&gt; %s&quot;,@encode(Union));
+        typedef union union_type{
+            char *name;
+            int a;
+        }Union;
+        NSLog(@&quot;union --&gt; %s&quot;,@encode(Union));
 
-    int a = 2;
-    int *b = {&amp;a};
-    NSLog(@&quot;int[] --&gt; %s&quot;,@encode(typeof(b)));
+        int a = 2;
+        int *b = {&amp;a};
+        NSLog(@&quot;int[] --&gt; %s&quot;,@encode(typeof(b)));
 
-}
+    }
   return 0;
 }</code></pre><p>打印结果和列表中所列相同，这里不再列出。</p>
 <h4 id="应用示例"><a href="#应用示例" class="headerlink" title="应用示例"></a>应用示例</h4><p>区分一个数组中NSNumber值的具体数据类型。</p>
@@ -520,15 +520,43 @@ f
   }
   return 0;
 }</code></pre><h4 id="方法的类型编码"><a href="#方法的类型编码" class="headerlink" title="方法的类型编码"></a>方法的类型编码</h4><p>runtime系统预备了一些编码，这些编码在协议中声明方法时会用到。编码列表如下:</p>
-<pre><code>Code|Meaning
-----|-------
-r|const
-n|in
-N|inout
-o|out
-O|bycopy
-R|byref
-V|oneway</code></pre><h4 id="属性的类型编码"><a href="#属性的类型编码" class="headerlink" title="属性的类型编码"></a>属性的类型编码</h4><p>当我们声明属性时，编译器会产生一些与封装的类，类别或协议相关联的一些元数据，我们可以获得这些元数据类型作为一个@encode编译后的C字符串。总结为一句话：<strong>就是用一个C字符串来表示属性的一些描述信息</strong><br>我们可以通过property_getAttributes函数去获得属性的一个属性或者属性的其他属性经过@encode编码之后的C字符串。这个字符串以T开头，后面紧跟@encode编码后的C字符串，然后用‘,’分隔，最后以V紧跟实例变量的返回值结束。在T和V之间，属性的属性用下列字符来描述：</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>r</td>
+<td>const</td>
+</tr>
+<tr>
+<td>n</td>
+<td>in</td>
+</tr>
+<tr>
+<td>N</td>
+<td>inout</td>
+</tr>
+<tr>
+<td>o</td>
+<td>out</td>
+</tr>
+<tr>
+<td>O</td>
+<td>bycopy</td>
+</tr>
+<tr>
+<td>R</td>
+<td>byref</td>
+</tr>
+<tr>
+<td>V</td>
+<td>oneway</td>
+</tr>
+</tbody></table>
+<h4 id="属性的类型编码"><a href="#属性的类型编码" class="headerlink" title="属性的类型编码"></a>属性的类型编码</h4><p>当我们声明属性时，编译器会产生一些与封装的类，类别或协议相关联的一些元数据，我们可以获得这些元数据类型作为一个@encode编译后的C字符串。总结为一句话：<strong>就是用一个C字符串来表示属性的一些描述信息</strong><br>我们可以通过property_getAttributes函数去获得属性的一个属性或者属性的其他属性经过@encode编码之后的C字符串。这个字符串以T开头，后面紧跟@encode编码后的C字符串，然后用‘,’分隔，最后以V紧跟实例变量的返回值结束。在T和V之间，属性的属性用下列字符来描述：</p>
 <table>
 <thead>
 <tr>
