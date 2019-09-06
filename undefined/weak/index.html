@@ -81,16 +81,16 @@
 
 <meta name="description" content="前言在iOS中，我们经常用weak来解决循环引用的问题。weak关键字的作用弱引用，所引用对象的计数器不会加一，并在引用对象被释放的时候自动被设置为 nil weak实现原理当我们初始化一个weak变量时，runtime做了如下操作: 1、初始化weak指针。 2、存储weak对象。 3、返回weak对象。 初始化weak指针。runtime调用objc_initWeak方法，来初始化一个weak">
 <meta property="og:type" content="article">
-<meta property="og:title" content="weak">
+<meta property="og:title" content="weak的实现原理">
 <meta property="og:url" content="https://blog.lemongame.top/undefined/weak/index.html">
 <meta property="og:site_name" content="Lemon&#39;s Blog">
 <meta property="og:description" content="前言在iOS中，我们经常用weak来解决循环引用的问题。weak关键字的作用弱引用，所引用对象的计数器不会加一，并在引用对象被释放的时候自动被设置为 nil weak实现原理当我们初始化一个weak变量时，runtime做了如下操作: 1、初始化weak指针。 2、存储weak对象。 3、返回weak对象。 初始化weak指针。runtime调用objc_initWeak方法，来初始化一个weak">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/weak%E7%BB%93%E6%9E%84.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/objc_release.png">
-<meta property="og:updated_time" content="2019-09-06T08:12:23.138Z">
+<meta property="og:updated_time" content="2019-09-06T08:40:05.136Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="weak">
+<meta name="twitter:title" content="weak的实现原理">
 <meta name="twitter:description" content="前言在iOS中，我们经常用weak来解决循环引用的问题。weak关键字的作用弱引用，所引用对象的计数器不会加一，并在引用对象被释放的时候自动被设置为 nil weak实现原理当我们初始化一个weak变量时，runtime做了如下操作: 1、初始化weak指针。 2、存储weak对象。 3、返回weak对象。 初始化weak指针。runtime调用objc_initWeak方法，来初始化一个weak">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/xuehan111/images/master/weak%E7%BB%93%E6%9E%84.png">
 
@@ -128,7 +128,7 @@
 
 
 
-  <title>weak | Lemon's Blog</title>
+  <title>weak的实现原理 | Lemon's Blog</title>
   
 
 
@@ -282,7 +282,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">weak</h1>
+          <h1 class="post-title" itemprop="name headline">weak的实现原理</h1>
         
 
         <div class="post-meta">
@@ -574,8 +574,8 @@ objc_object::clearDeallocating_slow()
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/undefined/block/" rel="prev" title="block">
-                block <i class="fa fa-chevron-right"></i>
+              <a href="/undefined/block/" rel="prev" title="深入理解block">
+                深入理解block <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
