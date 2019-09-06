@@ -259,6 +259,655 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/OC与JS交互原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/OC与JS交互原理/" itemprop="url">OC与JS交互原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-27T12:15:31+08:00">
+                2019-01-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png" alt="oc_js交互.png"></p>
+<h3 id="OC-与-JS-交互示例"><a href="#OC-与-JS-交互示例" class="headerlink" title="OC 与 JS 交互示例"></a>OC 与 JS 交互示例</h3><h4 id="OC调用JS方法"><a href="#OC调用JS方法" class="headerlink" title="OC调用JS方法"></a>OC调用JS方法</h4><pre><code>NSString *jsCode = @&quot;function A(){return 10;}&quot;;
+JSContext *context = [[JSContext alloc] init];
+[context evaluateScript:jsCode];
+JSValue *value = [context evaluateScript:@&quot;A()&quot;];
+NSLog(@&quot;%d&quot;, [value toInt32]);</code></pre><h4 id="JS调用OC方法"><a href="#JS调用OC方法" class="headerlink" title="JS调用OC方法"></a>JS调用OC方法</h4><pre><code>JSContext *context = [[JSContext alloc] init];
+// 初始化方法
+context[@&quot;test&quot;] =  ^() {
+    NSLog(@&quot;1230&quot;);
+};
+// 调用方法
+ [context evaluateScript:@&quot;test()&quot;];</code></pre><h3 id="OC-与-JS-交互原理"><a href="#OC-与-JS-交互原理" class="headerlink" title="OC 与 JS 交互原理"></a>OC 与 JS 交互原理</h3><p> 先了解下JavaScriptCore 框架中的几个对象: JSVirtualMachine、JSContext、JSValue、JSManagedValue</p>
+<h4 id="JSVirtualMachine"><a href="#JSVirtualMachine" class="headerlink" title="JSVirtualMachine"></a>JSVirtualMachine</h4><p>从字面意思上看，是JS虚拟机。一个JSVirtualMachine实例代表了一个 JS运行环境，或者可以说是一系列JS运行所需的资源。该类有两个主要的使用用途：一是支持并发的JS调用，二是管理JS和Native之间桥对象的内存。</p>
+<p>JS是单线程机制，在一个JSVirtualMachine中，只有一条线程可以执行JS代码，所以我们无法在一个JSVirtualMachine进行多线程处理JS任务。如果要多线程处理JS任务，就需要同时生成多个JSVirtualMachine，从而达到多线程处理的目的。</p>
+<h4 id="JSContext"><a href="#JSContext" class="headerlink" title="JSContext"></a>JSContext</h4><p> 每个JSContext都从属于一个JSVirtualMachine，一个JSVirtualMachine可以包含多个JSContext。</p>
+<p> JSContext负责JS语言的执行，JS代码的执行必须在JSContext之中。我们可以通过创建一个JSContext去调用JS脚本，访问一些JS定义的值和函数，同时JSContext也提供了让JS访问Native对象，方法的接口。</p>
+<p> JSContext 的属性中有个 globalObject对象，它返回当前执行JSContext的全局对象，这个globalObject对象就是 JSContext的核心。我们在原生中对js的交互，其实就是在跟这个对象交互。globalObject对象存储了我们注入到JS中的原生方法以及我们在执行JS代码后，生成的变量和函数。在WebKit中，JSContext返回的global对象就是 Window对象。</p>
+<h4 id="JSValue"><a href="#JSValue" class="headerlink" title="JSValue"></a>JSValue</h4><p>OC 是不可以直接使用 JS 的变量和函数的，同时，JS 也是不可以直接使用 OC 的变量和方法的。因此，需要经过转化之后才可以使用。JSValue 可以实现OC 和 JS值的相互转化。一个JSValue 代表了一个JS值的引用。</p>
+<p>OC 和 JS 类型转化关系如下:</p>
+<table>
+<thead>
+<tr>
+<th>Objective-C type</th>
+<th>JavaScript type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>nil</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>NSNull</td>
+<td>null</td>
+</tr>
+<tr>
+<td>NSString</td>
+<td>string</td>
+</tr>
+<tr>
+<td>NSNumber</td>
+<td>number, boolean</td>
+</tr>
+<tr>
+<td>NSDictionary</td>
+<td>Object object</td>
+</tr>
+<tr>
+<td>NSArray</td>
+<td>Array object</td>
+</tr>
+<tr>
+<td>NSDate</td>
+<td>Date object</td>
+</tr>
+<tr>
+<td>NSBlock</td>
+<td>Function object</td>
+</tr>
+<tr>
+<td>id</td>
+<td>Wrapper object</td>
+</tr>
+<tr>
+<td>Class</td>
+<td>Constructor object</td>
+</tr>
+</tbody></table>
+<h5 id="NSDictionary-lt-—-gt-js-Object"><a href="#NSDictionary-lt-—-gt-js-Object" class="headerlink" title="NSDictionary &lt;—&gt; js Object"></a>NSDictionary &lt;—&gt; js Object</h5><p> OC 的 NSDictionary是key，value键值对形式，JS 的 Object 也是 键值(key,value)的形式.因此可以相互转化。</p>
+<pre><code>var person = {&quot;name&quot;: &quot;xuehan&quot;, &quot;age&quot;: 10 }; // js Object
+NSDictionary *dict = @{@&quot;name&quot;: @&quot;xuehan&quot;, @&quot;age&quot;: @10} //  OC NSDictionary</code></pre><h5 id="NSBlock-lt-—-gt-js-Function"><a href="#NSBlock-lt-—-gt-js-Function" class="headerlink" title="NSBlock &lt;—&gt; js Function"></a>NSBlock &lt;—&gt; js Function</h5><p> OC 中的Block，本质上就是一个包裹了函数指针的类。而 JS 中的函数实际上也是一个”Function”类型的对象，函数名 其实就是指向一个函数对象的引用。因此可以相互转化</p>
+<pre><code>// OC block
+void (^Block)() = ^{
+    NSLog(@&quot;123&quot;);
+}
+// js 函数
+var test = function(){
+    return 10;
+}</code></pre><h4 id="JSManagedValue"><a href="#JSManagedValue" class="headerlink" title="JSManagedValue"></a>JSManagedValue</h4><p>JS内存管理是垃圾回收，并且JS中的对象都是强引用，而OC是引用计数。如果双方相互引用，势必会造成循环引用，而导致内存泄露。我们可以用JSManagedValue保存JSValue来避免.</p>
+<p>JSManagedValue 采用了 “conditionally retained” 机制来管理 内存，即 只要对象能通过 JS object graph 或者  通过 addManagedReference:withOwner: 方式告知给 JSVirtualMachine 的 Objective-C object graph 访问到，就不会释放。</p>
+<h4 id="交互原理"><a href="#交互原理" class="headerlink" title="交互原理"></a>交互原理</h4><p>OC 调用JS方法时，是通过 JSContext的 evaluateScript 方法的执行 js 代码。该方法在globalObject中保存了生成的变量和方法，同时将值以JSValue的形式存储起来。 </p>
+<p>JS 调用 OC 原生方法，需要将原生代码先通过JSContext转化为JSValue的形式，注入到 JSContext中的globalObject里面（示例是通过Block的方式将原生方法注入到globalObject中去的。</p>
+<p>这样，无论原生代码还是JS代码，最终都将信息通过JSValue的方式保存在了globalObject中，在交互时，通过JSContext 获取到对应的 JSValue, 即可实现交互。在JS 调用原生代码时，通过拿到对应的JSValue，然后取出 invocation，来实现动态调用原生方法的。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/clang/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/clang/" itemprop="url">clang</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-15T22:10:49+08:00">
+                2018-10-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="clang-命令"><a href="#clang-命令" class="headerlink" title="clang 命令"></a>clang 命令</h3><p>1、重新编译.m文件</p>
+<pre><code>clang -rewrite-objc 文件</code></pre><p>或</p>
+<pre><code>clang -rewrite-objc -fobjc-arc -stdlib=libc++ -mmacosx-version-min=10.7 -fobjc-runtime=macosx-10.7 -Wno-deprecated-declarations main.m</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/kvo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/kvo/" itemprop="url">kvo</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-20T19:08:49+08:00">
+                2018-09-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="深入理解KVO"><a href="#深入理解KVO" class="headerlink" title="深入理解KVO"></a>深入理解KVO</h3><h4 id="KVO的使用"><a href="#KVO的使用" class="headerlink" title="KVO的使用"></a>KVO的使用</h4><pre><code>[_person addObserver:self forKeyPath:@&quot;name&quot; options:NSKeyValueObservingOptionNew context:nil];
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary&lt;NSKeyValueChangeKey,id&gt; *)change context:(void *)context{
+
+}
+- (void)dealloc {
+    [_person removeObserver:self forKeyPath:@&quot;name&quot;];
+}</code></pre><h4 id="KVO的原理"><a href="#KVO的原理" class="headerlink" title="KVO的原理"></a>KVO的原理</h4><p>KVO是基于runtime机制实现的，当对象A的属性被观察时，KVO机制动态创建一个A类的子类NSKVONotifying_A，并在这个子类里重写了A类里被观察属性的setter方法，在属性值改变前后调用willChangeValueForKey: 和 didChangevlueForKey:方法，随后使用method-swizzling替换了setter的IMP实现，然后新的setter方法负责在属性被更改后通知观察对象属性的变化情况。同时,将对象A的isa指向这个动态生成的派生类。</p>
+<p>我们可以代码验证下这个派生类，我们打印下对象在addObserver之后的相关信息。</p>
+<pre><code>NSLog(@&quot;%s&quot;,object_getClassName(_person));
+[_person addObserver:self forKeyPath:@&quot;name&quot; options:NSKeyValueObservingOptionNew context:nil];
+NSLog(@&quot;%s&quot;,object_getClassName(_person));</code></pre><p>输出结果如下</p>
+<pre><code>Person
+NSKVONotifying_Person</code></pre><p>对比发现，在addObserver之后，object_getClassName(_person)的值，即_person的isa指向的值变成了<strong>NSKVONotifying_Person</strong>，之后所有的操作都是由这个中间类来实现的。</p>
+<h4 id="手动触发KVO通知"><a href="#手动触发KVO通知" class="headerlink" title="手动触发KVO通知"></a>手动触发KVO通知</h4><p>一对一,<br>手动触发通知，需要在setter方法中，赋值前后调用<strong>willChangeValueForKey: *<em>和 *</em>didChangevlueForKey:</strong>方法，然后重写<strong>+ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)theKey</strong>方法。</p>
+<p>代码示例:</p>
+<pre><code>- (void)setName:(NSString *)name {
+    [self willChangeValueForKey:@&quot;name&quot;];
+    _name = name;
+    [self didChangeValueForKey:@&quot;name&quot;];
+}
+
++ (BOOL)automaticallyNotifiesObserversForKey:(NSString *)theKey {
+    if ([theKey isEqualToString:@&quot;name&quot;]) {
+        return NO;
+    }
+    return [super automaticallyNotifiesObserversForKey:theKey];
+}</code></pre><h4 id="KVO一对多依赖"><a href="#KVO一对多依赖" class="headerlink" title="KVO一对多依赖"></a>KVO一对多依赖</h4><p>有时候，观察的属性的值依赖于另一对象中的一个或多个属性，如果这些属性中任一属性的值发生变更，则观察的属性值也会改变，此时应当触发通知。</p>
+<p>代码示例如下</p>
+<pre><code>@interface Person : NSObject
+
+@property (nonatomic, copy) NSString *name;
+
+@property (nonatomic, assign) int age;
+
+@property (nonatomic, copy) NSString *information;
+
+@end</code></pre><p>如果information的值，依赖name和age属性，如果对information属性进行观察，那么，name和age属性值的修改，也会影响到information的改变，也需要触发观察通知。</p>
+<p>实现方案:<br>如果观察属性A的值的改变依赖于属性B和C,要实现B和C的值的改变，触发A的观察通知，则应当实现<strong>+ (NSSet&lt;NSString *&gt; *)keyPathsForValuesAffecting+属性A的方法</strong>同时实现A的<strong>getter</strong>和<strong>setter</strong>方法。</p>
+<p>对于示例代码，则要同时实现information的<strong>getter</strong>和<strong>setter</strong>方法，然后实现<strong>+ (NSSet&lt;NSString *&gt; *)keyPathsForValuesAffectingInformation</strong>方法就好了。</p>
+<pre><code>- (NSString *)information
+{
+    return [[NSString alloc] initWithFormat:@&quot;%@#%d&quot;, _name, _age];
+}
+
+- (void)setInformation:(NSString *)theInformation
+{
+    NSArray * array = [theInformation componentsSeparatedByString:@&quot;#&quot;];
+    _name = [array objectAtIndex:0];
+    _age = [[array objectAtIndex:1] intValue];
+}
+
++ (NSSet&lt;NSString *&gt; *)keyPathsForValuesAffectingInformation{
+    NSSet * keyPaths = [NSSet setWithObjects:@&quot;age&quot;, @&quot;name&quot;, nil];
+    return keyPaths;
+}
+
+[_person addObserver:self forKeyPath:@&quot;information&quot; options:NSKeyValueObservingOptionNew context:nil];</code></pre><h4 id="手动实现KVO"><a href="#手动实现KVO" class="headerlink" title="手动实现KVO"></a>手动实现KVO</h4><pre><code>@interface NSObject (KVO)
+
+- (void)dd_addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(void *)context;
+
+@end
+
+
+#import &quot;NSObject+KVO.h&quot;
+#import &lt;objc/runtime.h&gt;
+#import &lt;objc/message.h&gt;
+
+static NSString *KVOPrefix = @&quot;DDKVONotifying_&quot;;
+static NSString * const KVOObserverKey = @&quot;KVOObserverKey&quot;;
+
+@implementation NSObject (KVO)
+
+- (NSMutableArray *)observers{
+    return objc_getAssociatedObject(self, _cmd);
+}
+- (void)setObservers:(NSMutableArray *)observers{
+    objc_setAssociatedObject(self, @selector(observers), observers, OBJC_ASSOCIATION_RETAIN);
+}
+
+static NSString *setterForGetter(NSString * getter)
+{
+    if (getter.length &lt;= 0) { return nil; }
+    NSString * firstString = [[getter substringToIndex: 1] uppercaseString];
+    NSString * leaveString = [getter substringFromIndex: 1];
+
+    return [NSString stringWithFormat: @&quot;set%@%@:&quot;, firstString, leaveString];
+}
+
+
+static NSString *getterForSetter(NSString * setter)
+{
+    if (setter.length &lt;= 0 || ![setter hasPrefix: @&quot;set&quot;] || ![setter hasSuffix: @&quot;:&quot;]) {
+
+        return nil;
+    }
+
+    NSRange range = NSMakeRange(3, setter.length - 4);
+    NSString * getter = [setter substringWithRange: range];
+
+    NSString * firstString = [[getter substringToIndex: 1] lowercaseString];
+    getter = [getter stringByReplacingCharactersInRange: NSMakeRange(0, 1) withString: firstString];
+
+    return getter;
+}
+
+static void KVO_setter(id self, SEL _cmd, id newValue)
+{
+    NSString * setterName = NSStringFromSelector(_cmd);
+    NSString * getterName = getterForSetter(setterName);
+    if (!getterName) {
+        @throw [NSException exceptionWithName: NSInvalidArgumentException reason: [NSString stringWithFormat: @&quot;unrecognized selector sent to instance %p&quot;, self] userInfo: nil];
+        return;
+    }
+
+    id oldValue = [self valueForKey: getterName];
+    struct objc_super superClass = {
+        .receiver = self,
+        .super_class = class_getSuperclass(object_getClass(self))
+    };
+
+    [self willChangeValueForKey: getterName];
+    void (*objc_msgSendSuperKVO)(void *, SEL, id) = (void *)objc_msgSendSuper;
+    objc_msgSendSuperKVO(&amp;superClass, _cmd, newValue);
+    [self didChangeValueForKey: getterName];
+
+    NSMutableArray *observers = objc_getAssociatedObject(self, (__bridge const void * _Nonnull)(KVOObserverKey));
+    if(observers){
+        for(id observer in observers){
+            [observer dd_observeValueForKeyPath:getterName ofObject:self change:@{NSKeyValueChangeOldKey:oldValue,NSKeyValueChangeNewKey:newValue} context:nil];
+        }
+    }
+
+}
+
+- (void)dd_addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(void *)context {
+    // 判断setter方法是否存在
+    SEL setterSelector = NSSelectorFromString(setterForGetter(keyPath));
+    Method setterMethod = class_getInstanceMethod([self class], setterSelector);
+    if(!setterMethod){
+        @throw [NSException exceptionWithName:NSInvalidArgumentException reason:[NSString stringWithFormat: @&quot;unrecognized selector sent to instance %@&quot;, self] userInfo:nil];
+        return;
+    }
+    // 创建kvo中间类
+    Class kvoClass = object_getClass(self);
+    NSString *className = NSStringFromClass(kvoClass);
+    if(![className hasPrefix:KVOPrefix]){
+        kvoClass = [self createKVOClass];
+        object_setClass(self, kvoClass);
+    }
+    // 增加setter方法
+    if(![self hasSelector:setterSelector]){
+        const char * types = method_getTypeEncoding(setterMethod);
+        class_addMethod(kvoClass, setterSelector, (IMP)KVO_setter, types);
+    }
+
+    NSMutableArray *observers = objc_getAssociatedObject(self, (__bridge const void *)(KVOObserverKey));
+    if (!observers) {
+        observers = [NSMutableArray array];
+        objc_setAssociatedObject(self, (__bridge void *)KVOObserverKey, observers, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    [observers addObject:observer];
+}
+
+- (BOOL)hasSelector: (SEL)selector
+{
+    Class observedClass = object_getClass(self);
+    unsigned int methodCount = 0;
+    Method * methodList = class_copyMethodList(observedClass, &amp;methodCount);
+    for (int i = 0; i &lt; methodCount; i++) {
+
+        SEL thisSelector = method_getName(methodList[i]);
+        if (thisSelector == selector) {
+
+            free(methodList);
+            return YES;
+        }
+    }
+
+    free(methodList);
+    return NO;
+}
+
+
+static Class kvo_Class(id self)
+{
+    return class_getSuperclass(object_getClass(self));
+}
+
+- (Class)createKVOClass {
+    Class originalClass = object_getClass(self);
+    NSString *className = NSStringFromClass(originalClass);
+    NSString *kvoClassName = [KVOPrefix stringByAppendingString:className];
+    Class kvoClass = NSClassFromString(kvoClassName);
+    // 如果已经存在 kvoClass,直接返回，不再创建
+    if(kvoClass){
+        return kvoClass;
+    }
+    // 创建新类，并添加前缀
+    kvoClass = objc_allocateClassPair(originalClass, kvoClassName.UTF8String, 0);
+    // 为新建的类添加class方法
+    Method classMethod = class_getInstanceMethod(originalClass, @selector(class));
+    const char * types = method_getTypeEncoding(classMethod);
+    class_addMethod(kvoClass, @selector(class), (IMP)kvo_Class, types);
+    objc_registerClassPair(kvoClass);
+    return kvoClass;
+}
+
+@end</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/iOS系统架构/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -290,8 +939,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:06:54+08:00">
-                2019-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-16T19:06:54+08:00">
+                2018-05-16
               </time>
             
 
@@ -446,8 +1095,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T19:03:01+08:00">
-                2019-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-20T20:03:01+08:00">
+                2018-03-20
               </time>
             
 
@@ -585,7 +1234,7 @@ CFRelease(boxPath);</code></pre><p>3、NSTimer内存泄露</p>
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/iOS-Sign/">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/ssh/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="疯狂小柠檬">
@@ -604,7 +1253,7 @@ CFRelease(boxPath);</code></pre><p>3、NSTimer内存泄露</p>
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/undefined/iOS-Sign/" itemprop="url">iOS签名机制</a></h1>
+                <a class="post-title-link" href="/undefined/ssh/" itemprop="url">ssh</a></h1>
         
 
         <div class="post-meta">
@@ -616,8 +1265,8 @@ CFRelease(boxPath);</code></pre><p>3、NSTimer内存泄露</p>
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:59:27+08:00">
-                2019-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-06T17:28:04+08:00">
+                2017-07-06
               </time>
             
 
@@ -656,25 +1305,12 @@ CFRelease(boxPath);</code></pre><p>3、NSTimer内存泄露</p>
       
         
           
-            <h3 id="iOS-App签名机制"><a href="#iOS-App签名机制" class="headerlink" title="iOS App签名机制"></a>iOS App签名机制</h3><p>流程图如下:<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/app_sign.png" alt="app_sign.png"></p>
-<h4 id="实际操作流程"><a href="#实际操作流程" class="headerlink" title="实际操作流程"></a>实际操作流程</h4><p>1、在<code>keychain</code>里从 证书颁发机构请求证书。此时，便在本地生成了一对公私钥(公钥L,私钥L)，我们得到的<code>certSigningRequest</code>文件即是公钥L，私钥L保存在我们的本地电脑里。</p>
-<p>2、将<code>certSigningRequest</code>文件传到Apple后台，Apple用自己的私钥A对这个文件进行签名，得到开发证书。将该证书下载到本地。<br>这时本地有两个证书，一个是第1步生成的，一个是这里下载回来的，keychain会把这两个证书关联起来，因为它们的公私钥是对应的，在Xcode选择下载回来的证书时，实际上会找到keychain里面对应的私钥L去签名。这里私钥L只有生成它的这台Mac才有，如果别的Mac也要编译签名这个App，怎么办？答案是把私钥导出给其他Mac使用，在keychain里面导出私钥，就会存成.p12文件，其他Mac打开后就导入私钥。</p>
-<p>3、在苹果后台配置AppID、App使用权限、设备ID列表等。加上第2步的cer证书，组成的数据用私钥A进行签名，把数据和签名一起组成一个描述文件Provisioning Profile，将其下载到Mac本机。</p>
-<p>4、开发时，Xcode会通过第2步下载回来的cer证书(存着本地公钥L)，在本地找到对应的私钥L(第1步生成的)，然后用私钥L去签名App，并把Provisioning Profile文件命名为embedded.mobileprovision一起打包到App中。这里对App的签名数据保存分为两部分，Mach-O可执行文件会把签名直接写入这个文件里，其他资源文件则会保存在_CodeSignature目录下</p>
-<p>5、安装时，iOS系统取得证书，通过系统内置的公钥A，去验证 embedded.mobileprovision的数字签名是否正确，里面的证书签名也会再验一遍。</p>
-<p>6、确保了embedded.mobileprovision里的数据都是苹果授权以后，就可以取出里面的数据，做各种验证，包括用公钥L验证APP签名，验证设备ID是否在ID列表上，AppID是否对应得上，权限开关是否跟APP里的Entitlements对应等。</p>
-<pre><code>Note: 
+            <h3 id="SSH-登录远程服务器"><a href="#SSH-登录远程服务器" class="headerlink" title="SSH 登录远程服务器"></a>SSH 登录远程服务器</h3><h4 id="常用登录"><a href="#常用登录" class="headerlink" title="常用登录"></a>常用登录</h4><p>SSH连接服务器的命令：</p>
+<pre><code>ssh IP地址  
 
-证书：内容是公钥或私钥，由其他机构对其签名组成的数据包。
-Entitlements：包含了App权限开关列表。
-CertificateSigningRequest：本地公钥。
-.p12：本地私钥，可以导入到其他电脑。
-Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后台私钥签名的数据包。</code></pre><h3 id="Question-amp-amp-Answer"><a href="#Question-amp-amp-Answer" class="headerlink" title="Question &amp;&amp; Answer"></a>Question &amp;&amp; Answer</h3><p><strong>Q1、为什么团队开发，真机调试需要 p12 文件？</strong></p>
-<p>在Xcode选择下载回来的cer证书时，实际上会找到keychain里面对应的私钥L去签名。这个私钥L只有生成它的这台Mac才有，如果别的Mac也要编译签名这个App，则需要把私钥L导出给其他Mac使用，在keychain里面导出第二步下载安装的cer文件，就会存成.p12文件，其含有私钥L，其他Mac打开后就导入私钥。</p>
-<p><strong>Q2、为什么证书过期了，AppStore发布的app还可以正常使用？</strong></p>
-<p>因为上传到AppStore的ipa，苹果会重新对内容加密，原来的本地私钥L签名就没有用了，需要重新签名，从AppStore下载的包苹果也并不打算控制它的有效期，不需要内置一个embedded.mobileprovision去做校验，直接在苹果用后台的私钥A重新签名，iOS安装时用本地公钥A验证App签名就可以了。</p>
-<p><strong>Q3、既然发布后的App不需要各种证书，为什么发布AppStore的包还是要跟开发版一样搞各种证书和Provisioning Profile？</strong></p>
-<p>猜测因为苹果想做统一管理，Provisioning Profile里包含一些权限控制，AppID 的检验等，苹果不想在上传AppStore 包时重新用另一种协议做一遍这些验证，就不如统一把这部分放在 Provisioning Profile里，上传AppStore时只要用同样的流程验证这个 Provisioning Profile是否合法就可以了</p>
+ssh 用户名@IP地址 -p 端口号</code></pre><p>连接成功的话会提示你输入远程服务器的密码。</p>
+<h4 id="密钥登录"><a href="#密钥登录" class="headerlink" title="密钥登录"></a>密钥登录</h4><p>将本地公钥添加到服务器中</p>
+<pre><code>scp -P 端口号 本地文件路径 用户名@远程服务器地址:远程路径</code></pre><p>然后登陆服务器，找到复制进去的公钥，将公钥名字改为authorized_keys并添加到对应的.ssh文件夹中。然后退出SSH重新登陆试试，成功的话不需要输入密码就会直接进入远程服务器。</p>
 
           
         
@@ -723,7 +1359,7 @@ Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/git命令/">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/synchronized/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="疯狂小柠檬">
@@ -742,7 +1378,7 @@ Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/undefined/git命令/" itemprop="url">git命令</a></h1>
+                <a class="post-title-link" href="/undefined/synchronized/" itemprop="url">synchronized</a></h1>
         
 
         <div class="post-meta">
@@ -754,8 +1390,8 @@ Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:57:36+08:00">
-                2019-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-27T20:28:56+08:00">
+                2017-03-27
               </time>
             
 
@@ -794,34 +1430,171 @@ Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后
       
         
           
-            <h3 id="git命令"><a href="#git命令" class="headerlink" title="git命令"></a>git命令</h3><ul>
-<li>git hash-object -w 文件名</li>
-</ul>
-<p>存储数据对象,输出一个长度为 40 个字符的校验和。 这是一个 SHA-1 哈希值——一个将待存储的数据外加一个头部信息（header）一起做 SHA-1 校验运算而得的校验和</p>
-<ul>
-<li><p>git cat-file -p SHA-1值</p>
-<p>查看文件内容</p>
-</li>
-<li><p>git cat-file -t SHA-1值</p>
-<p>  查看git内部存储文件的对象类型</p>
-</li>
-<li><p>git cat-file -p 分支名称^{tree}</p>
-<p>  查看指定分支的树结构</p>
-</li>
-<li><p>git update-index –add –cacheinfo 100644 \</p>
-<p>创建一个暂存区，并将文件添加到暂存区。</p>
-<p>100644:表明这是一个普通文件</p>
-<p>100755:表示一个可执行文件</p>
-<p>120000:表示一个符号链接</p>
-</li>
-<li><p>git write-tree</p>
-<p>  将暂存区内容写入一个树对象</p>
-</li>
-<li><p>git update-ref refs/heads/newbranch commit的sha值</p>
-<p>  更新分支引用，相当于创建了 newbranch 分支。</p>
-<p>  当运行类似于 git branch (branchname) 这样的命令时，Git 实际上会运行 update-ref 命令，取得当前所在分支最新提交对应的 SHA-1 值，并将其加入你想要创建的任何新引用中</p>
-</li>
-</ul>
+            <h3 id="synchronized"><a href="#synchronized" class="headerlink" title="@synchronized"></a>@synchronized</h3><h4 id="问题思考"><a href="#问题思考" class="headerlink" title="问题思考"></a>问题思考</h4><p>1、@synchronized互相嵌套会不会导致死锁？</p>
+<p>2、@synchronized(object){} 中object传入nil，会不会有问题？如果传入的object在代码块执行过程中，被置为nil，会发生什么？</p>
+<h4 id="代码执行结果"><a href="#代码执行结果" class="headerlink" title="代码执行结果"></a>代码执行结果</h4><p>1、@synchronized互相嵌套</p>
+<pre><code>- (void)test {
+    @synchronized (self) {
+        NSLog(@&quot;111&quot;);
+        @synchronized (self) {
+            NSLog(@&quot;222&quot;);
+        }
+    }
+}</code></pre><p>输出结果</p>
+<pre><code>111
+222</code></pre><p>结论: 能正确打印，证明可以相互嵌套。</p>
+<p> 2、多线程情况下，@synchronized 传入 nil</p>
+<pre><code> - (void)touchesBegan:(NSSet&lt;UITouch *&gt; *)touches withEvent:(UIEvent *)event {
+    self.value = 10;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self consume];
+    });
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self consume];
+    });
+}
+
+- (void)consume {
+    while (YES) {
+        sleep(1);
+        @synchronized (nil) {
+            if(self.value &gt; 0){
+                self.value --;
+                NSLog(@&quot;剩余票数 === %d&quot;,self.value);
+            }else{
+                NSLog(@&quot;票卖完了&quot;);
+                break;
+            }
+        }
+    }
+}</code></pre><p> 输出结果</p>
+<pre><code>剩余票数 === 9
+剩余票数 === 8
+剩余票数 === 7
+剩余票数 === 6
+剩余票数 === 4
+剩余票数 === 5
+剩余票数 === 3
+剩余票数 === 2
+剩余票数 === 0
+剩余票数 === 1
+票卖完了
+票卖完了</code></pre><p>结论: 传入nil，打印的顺序错乱，说明传入nil时，锁的互斥性消失了，等同于么有加锁</p>
+<p>3、@synchronized传入的对象，在执行过程中，被置为nil</p>
+<pre><code> - (void)touchesBegan:(NSSet&lt;UITouch *&gt; *)touches withEvent:(UIEvent *)event {
+    self.value = 10;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self consume];
+    });
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self consume];
+    });
+}
+
+- (void)consume {
+    while (YES) {
+        sleep(1);
+        @synchronized (_obj) {
+            if(self.value &gt; 0){
+                self.value --;
+                if(self.value == 10){
+                        _obj = nil;
+                }
+                NSLog(@&quot;剩余票数 === %d&quot;,self.value);
+            }else{
+                NSLog(@&quot;票卖完了&quot;);
+                break;
+            }
+        }
+    }
+}</code></pre><p>输出结果</p>
+<pre><code>剩余票数 === 9
+剩余票数 === 8
+剩余票数 === 7
+剩余票数 === 6
+剩余票数 === 4
+剩余票数 === 5
+剩余票数 === 2
+剩余票数 === 3
+剩余票数 === 0
+剩余票数 === 1
+票卖完了
+票卖完了</code></pre><p>结论: 传入的对象在代码执行的过程中置为nil，后续的数据仍然可以打印出来，说明置为nil后，锁是可以正确释放的，但是置为nil后，后续的数据顺序出现了错乱，等同于么有加锁，正好也验证了2的结论</p>
+<h3 id="synchronized探究"><a href="#synchronized探究" class="headerlink" title="@synchronized探究"></a>@synchronized探究</h3><p>我们写下以下代码:</p>
+<pre><code>- (void)test {
+    @synchronized (self) {
+        // TODO:
+    }
+}</code></pre><p>执行clang -rewrite-objc 文件名.m,我们看到编译成的c++代码如下:</p>
+<pre><code>static void _I_lockDemo_test(lockDemo * self, SEL _cmd) 
+{
+    {
+        id _rethrow = 0;
+        id _sync_obj = (id)self;
+        objc_sync_enter(_sync_obj);
+        try {
+            struct _SYNC_EXIT { _SYNC_EXIT(id arg) : sync_exit(arg) {}
+            ~_SYNC_EXIT() {objc_sync_exit(sync_exit);}
+            id sync_exit;
+            } _sync_exit(_sync_obj);
+
+
+            } catch (id e) {_rethrow = e;}
+        { struct _FIN { _FIN(id reth) : rethrow(reth) {}
+            ~_FIN() { if (rethrow) objc_exception_throw(rethrow); }
+            id rethrow;
+            } _fin_force_rethow(_rethrow);
+
+        }
+    }
+}</code></pre><p>从c++代码中，我们可以看到<br>    当我们传入对象后，其先用一个局部变量_sync_obj引用了我们传入的对象，然后用objc_sync_enter对_sync_obj加锁，用objc_sync_exit对_sync_obj释放锁。<br>查看objc_sync_enter和objc_sync_exit的源码实现</p>
+<pre><code>int objc_sync_enter(id obj)
+{
+    int result = OBJC_SYNC_SUCCESS;
+    if (obj) {
+        SyncData* data = id2data(obj, ACQUIRE);
+        require_action_string(data != NULL, done, result = OBJC_SYNC_NOT_INITIALIZED, &quot;id2data failed&quot;);
+        result = recursive_mutex_lock(&amp;data-&gt;mutex);
+        require_noerr_string(result, done, &quot;mutex_lock failed&quot;);
+    } else {
+        // @synchronized(nil) does nothing
+        if (DebugNilSync) {
+            _objc_inform(&quot;NIL SYNC DEBUG: @synchronized(nil); set a breakpoint on objc_sync_nil to debug&quot;);
+        }
+        objc_sync_nil();
+    }
+done: 
+    return result;
+}
+
+
+int objc_sync_exit(id obj)
+{
+    int result = OBJC_SYNC_SUCCESS;
+
+    if (obj) {
+        // 通过id2data获取SyncData
+        SyncData* data = id2data(obj, RELEASE); 
+        if (!data) {
+            result = OBJC_SYNC_NOT_OWNING_THREAD_ERROR;
+        } else {
+            // 将SyncData的锁进行解锁
+            bool okay = data-&gt;mutex.tryUnlock();
+            if (!okay) {
+                result = OBJC_SYNC_NOT_OWNING_THREAD_ERROR;
+            }
+        }
+    } else {
+        // 处理传入obj为nil情况
+        // @synchronized(nil) does nothing
+    }
+
+
+    return result;
+}</code></pre><p>我们发现，这两个方法，都对我们传入的对象做了判断，当我们传入的对象为nil时，objc_sync_enter和objc_sync_exit都么有做任何操作，相当于我们么有加锁，当我们传入的对象不为空时，objc_sync_enter方法为对象加了个递归锁recursive_mutex_lock，这也是@synchronized可以互相嵌套的原因。当我们在代码执行的过程中，将传入的对象置为nil时，由于局部变量_sync_obj的引用，传入的对象并么有释放，由于加锁和解锁都是针对于局部变量_sync_obj，所以可以正常的释放锁。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>1、@synchronized内部使用了递归锁，因此是可以嵌套的，如果嵌套锁的对象是同一个对象，不会导致死锁。如果是不同的对象，并且造成互相等待的情况，是有可能导致死锁的。</p>
+<p>2、@synchronized传入的对象为nil时，其内部不做任何处理，也就是说相当于么有加锁。</p>
+<p>3、@synchronized传入的对象在代码执行过程中被置为nil，也么有任何问题，锁任然可以正常的释放。</p>
 
           
         
@@ -870,7 +1643,7 @@ Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/git/">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/runloop/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="疯狂小柠檬">
@@ -889,7 +1662,7 @@ Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/undefined/git/" itemprop="url">git</a></h1>
+                <a class="post-title-link" href="/undefined/runloop/" itemprop="url">runloop</a></h1>
         
 
         <div class="post-meta">
@@ -901,8 +1674,8 @@ Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:53:38+08:00">
-                2019-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-06-21T22:58:25+08:00">
+                2016-06-21
               </time>
             
 
@@ -941,764 +1714,150 @@ Provisioning Profile：包含了 证书/Entitlements 等数据，并由苹果后
       
         
           
-            <h3 id="Git"><a href="#Git" class="headerlink" title="Git"></a>Git</h3><h4 id="git流程图"><a href="#git流程图" class="headerlink" title="git流程图"></a>git流程图</h4><p>git的大致流程图入下:</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/git%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="git流程图.png"></p>
-<ul>
-<li>Workspace：工作区</li>
-<li>Index / Stage：暂存区</li>
-<li>Repository：本地仓库</li>
-<li>Remote：远程仓库</li>
-</ul>
-<p>1.Workspace 工作区</p>
-<p>正在编辑的文件状态。该区域下的下的文件状态为未跟踪（untrack）状态。</p>
-<p>通过git pull把远程仓库中的文件同步到工作区</p>
-<p>2.Index/Stage 暂存区</p>
-<p>保存了下次将提交的文件列表信息。该区域的文件状态为已暂存状态。</p>
-<p>通过git add把Workspace区域中的文件提交到暂存区中</p>
-<p>3.Repository 本地仓库</p>
-<p>本地仓库就是从服务器上复制到本地的一份代码，所做的操作都是对这个仓库发生的。</p>
-<p>通过git commit把文件提交到本地仓库中。</p>
-<p>4.远程仓库</p>
-<p>远程仓库也就是我们所说的服务器端，最终，我们需要将本地仓库中的改动同步到远程仓库。</p>
-<p>通过git push把本地仓库中的文件推送到远程仓库中。</p>
-<h4 id="git内部原理详解"><a href="#git内部原理详解" class="headerlink" title="git内部原理详解"></a>git内部原理详解</h4><p>git内部存储数据有三种对象类型：blob对象、commit对象、tree对象。其都存储在.git文件夹下的objects下。git使用文件内容+特定头部信息一起的SHA-1 校验和为文件命名，校验和的前两个字符用于命名子目录，余下的 38 个字符则用作文件名。</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/git_objects.jpg" alt="git_objects.jpg"></p>
-<ul>
-<li><p>blob对象</p>
-<p>这是git存储文件内容的方式。每一个文件都会对应一个blob对象。我们对同一个文件的每次add 操作，即添加到暂存区，都会生成一个新blob对象。</p>
-<p>我们初始化个git项目: git init Demo</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/git_init.jpg" alt="git_init"></p>
-<p>我们会发现git已经帮我们生成了objects文件夹，并且该文件夹下包含info和pack空文件夹。因为我们还么有向Dmeo中添加文件，所以objects文件夹下，并么有blob对象。我们向项目Demo中添加个文件</p>
-<pre><code>$ echo &quot;a&quot; &gt;&gt; a.txt
- $ git add a.txt</code></pre><p>执行后发现objects文件夹下多了个文件夹，其文件夹名称加上子文件的名称就是a.txt对应的blob对象的sha-1校验和, 78981922613b2afb6025042ff6bd878ac1994e85</p>
-<p> <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_addfile.jpg" alt="git_addfile.jpg">;</p>
-<p> 我们可以使用 <code>git cat-file -t sha-1值</code> 来查看文件类型</p>
-<pre><code> $ git cat-file -t 78981922613b2afb6025042ff6bd878ac1994e85
-
-执行后，输出
-
-    blob</code></pre><p>我们对a.txt 做下修改:</p>
-<pre><code>$ echo &quot;aaa&quot; &gt;&gt; a.txt
-$ git add a.txt</code></pre><p>此时，objects文件夹下多了个文件夹cd,其对应我们修改后的blob对象:</p>
-</li>
-</ul>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/git_changefile.jpg" alt="git_changefile.jpg"></p>
-<p>  虽然我们修改的是同一个文件a.txt，但是git对我们每一次的修改都生成了一个blob文件。</p>
-<ul>
-<li><p>Tree 对象</p>
-<p>  blob对象，对应我们项目中的文件，而tree对象对应项目中的目录，即文件夹。一个Tree对象包含了一条或多条Tree对象记录，每条记录含有一个指向blob对象或者子tree对象的 SHA-1 指针，以及相应的模式、类型、文件名信息。</p>
-<p>  我们对刚才的项目做下改动:<br>  <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_tree0.jpg" alt="git_tree0.jpg"></p>
-<p>  执行 <code>git add .</code>将改动添加到暂存区。 通常，Git 根据某一时刻暂存区（即 index 区域）所表示的状态创建并记录一个对应的树对象。我们可以可以通过 <code>write-tree</code> 命令将暂存区内容写入一个树对象.然后观察它的结构:</p>
-<pre><code>$ git write-tree
-d48fb57270ffcedfa7a9bce975c3883b531e3f73
-$ git cat-file -p d48fb57270ffcedfa7a9bce975c3883b531e3f73
-100644 blob 3cadea260b677e4265363400d2dd6bd2f950d4bf    README.md
-100644 blob cd974dc3ea825c2145d68606da683dd0532d7b6e    a.txt
-040000 tree f8f7aefc2900a3d737cea9eee45729fd55761e1a    lib
-$ git cat-file -p f8f7aefc2900a3d737cea9eee45729fd55761e1a
-100644 blob 61780798228d17af2d34fce4cfbdf35556832472    b.txt</code></pre><p>  可以看出，项目的tree结构是这样的:</p>
-<p>  <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_tree.png" alt="git_tree.png"></p>
-</li>
-<li><p>Commit 对象    </p>
-<p>  当我们在执行<code>git commit</code>操作的时候，git会将暂存区的状态，记录成对应的树对象，并且创建一个commit对象来记录当前树的信息。</p>
-<p>  我们可以提交一下，然后用命令 来查看提交信息</p>
-<pre><code>$ git commit -m &quot;第一次提交&quot;
-
-[master (root-commit) d320bb7] 第一次提交
-3 files changed, 4 insertions(+)
-create mode 100644 README.md
-create mode 100644 a.txt
-create mode 100644 lib/b.txt</code></pre><p>  查看提交日志</p>
-<pre><code>$ git log
-
-commit d320bb785006e604d3b7072a532cae78a37142f6 (HEAD -&gt; master)
-Author: xiaobai &lt;madd@smartoven.tech&gt;
-Date:   Wed Jun 12 14:13:29 2019 +0800
-
-第一次提交</code></pre><p>  查看提交对象:</p>
-<pre><code>$ git cat-file -p d320bb
-tree d48fb57270ffcedfa7a9bce975c3883b531e3f73
-author xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
-committer xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
-
-第一次提交</code></pre><p>  可以看到:</p>
-<p>  <strong>提交对象的格式很简单：它先指定一个顶层tree对象(d48fb5)，代表当前项目快照；然后是作者/提交者信息（依据你的 user.name 和 user.email 配置来设定，外加一个时间戳）；留空一行，最后是提交注释。</strong></p>
-<p>  <strong>另外有个信息，我们么有看到，就是每一个commit对象都有一个指针指向其父commit对象(上一次提交的commit对象)</strong></p>
-</li>
-<li><p>小结: </p>
-<p>  <strong>以上是每次我们运行 git add 和 git commit 命令时， Git 所做的实质工作——将被改写的文件保存为数据对象，更新暂存区，记录树对象，最后创建一个指明了顶层树对象和父提交的提交对象。 这三种主要的 Git 对象——数据对象、树对象、提交对象——最终均以单独文件的形式保存在 .git/objects 目录下</strong></p>
-</li>
-</ul>
-<h4 id="git分支"><a href="#git分支" class="headerlink" title="git分支"></a>git分支</h4><p>在项目初始化的时候，我们可以看到 .git 文件夹下有个HEAD文件:</p>
-<p> HEAD 文件是一个符号引用，指向当前所在的分支。 所谓符号引用，意味着它并不像普通引用那样包含一个 SHA-1 值——它是一个指向其他引用的指针。</p>
-<p> 当我们执行 git commit 时，该命令会创建一个提交对象，并用 HEAD 文件中那个引用所指向的 SHA-1 值设置其父提交字段</p>
-<p> 另外我们还可以看到 .git 文件夹下有个refs文件夹，其子文件heads存放着每一个分支的最后一次提交时的commit对象的 sha-1值。<br> <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_refs.jpg" alt="git_refs.jpg"></p>
-<p>  git 分支的本质其实就是一个指向某一系列提交之首的指针或引用。当我们创建分支的时候，git会在refs文件夹下的heads文件夹中新建一个分支引用文件，然后根据HEAD文件，找到当前分支的最后一次提交commit对象的 sha-1值，写入这个分支引用文件中，之后的每次提交，都会更新这个分支引用文件为最新的提交commit对象的 sha-1值。</p>
-<p>  git分支的切换，其实就是根据refs下的heads文件夹，找到分支的引用，然后根据分支引用中的commit对象来读取数据，同时，修改HEAD中的值为当前分支。</p>
-<p>  git分支的切换.如图</p>
-<p>  <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_merge.png" alt="git_merge.png"></p>
-<p>  Branch 1 和 Branch 2分支进行mrege的时候，会根据C3、C4、找到这个提交的共同祖先C1，然后进行三方合并，并把合并结果重新做一个新的快照，并自动创建一个指向它的提交对象（C5）<br>  <img src="https://raw.githubusercontent.com/xuehan111/images/master/git_merge_result.png" alt="git_merge_result.png"></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/gcd/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/gcd/" itemprop="url">gcd</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:49:39+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="GCD"><a href="#GCD" class="headerlink" title="GCD"></a>GCD</h3><p><a href="https://apple.github.io/swift-corelibs-libdispatch/" target="_blank" rel="noopener">GCD源码</a></p>
-<h4 id="队列-dispatch-queue-t"><a href="#队列-dispatch-queue-t" class="headerlink" title="队列(dispatch_queue_t)"></a>队列(dispatch_queue_t)</h4><p>向任何队列中提交的 block，都会被放到它的目标队列中执行，而普通串行队列的目标队列就是一个支持 overcommit 的全局队列，全局队列的底层则是一个线程池。</p>
-<p>线程池与目标队列的关系图</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/gcdpool.png" alt>;</p>
-<h4 id="dispatch-async"><a href="#dispatch-async" class="headerlink" title="dispatch_async"></a>dispatch_async</h4><p>把任务添加到队列的一个链表中，添加完后会唤醒队列，根据 vtable 中的函数指针，调用 wakeup 方法。在 wakeup 方法中，从线程池里取出工作线程(如果没有就新建)，然后在工作线程中取出链表头部指向的 block 并执行。</p>
-<h5 id="dispatch-sync"><a href="#dispatch-sync" class="headerlink" title="dispatch_sync"></a>dispatch_sync</h5><p>它不涉及线程池(因此一般都在当前线程执行)，而是利用与线程绑定的信号量来实现串行。</p>
-<p>分发到不同队列时，代码进入的分支也不一样，比如 dispatch_async 到主队列的任务由 runloop 处理，而分发到其他队列的任务由线程池处理。</p>
-<p>在当前串行队列中执行 dispatch_sync 时，由于 dq_running 属性(表示在运行的任务数量) 为 1，所以以下判断成立:</p>
-<pre><code>if (slowpath(!dispatch_atomic_cmpxchg2o(dq, dq_running, 0, 1))) {
-    return _dispatch_barrier_sync_f_slow(dq, ctxt, func);
-}</code></pre><p>在 _dispatch_barrier_sync_f_slow 函数中使用了线程对应的信号量并且调用 wait 方法，从而导致线程死锁。</p>
-<p>如果向其它队列同步提交 block，最终进入 _dispatch_barrier_sync_f_invoke，它只是保证了 block 执行的原子性，但没有使用线程对应的信号量。</p>
-<h4 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h4><p>它主要使用 signal 和 wait 这两个接口，底层分别调用了内核提供的方法。在调用 signal 方法后，先将 value 减一，如果大于零立刻返回，否则陷入等待。signal 方法将信号量加一，如果 value 大于零立刻返回，否则说明唤醒了某一个等待线程，此时由系统决定哪个线程的等待方法可以返回。</p>
-<h4 id="dispatch-group"><a href="#dispatch-group" class="headerlink" title="dispatch_group"></a>dispatch_group</h4><p>本质就是一个 value 非常大的信号量，等待 group 完成实际上就是等待 value 恢复初始值。而 notify 的作用是将所有注册的回调组装成一个链表，在 dispatch_async 完成时判断 value 是不是恢复初始值，如果是则调用 dispatch_async 异步执行所有注册的回调。</p>
-<h4 id="dispatch-once"><a href="#dispatch-once" class="headerlink" title="dispatch_once"></a>dispatch_once</h4><p>通过一个静态变量来标记 block 是否已被执行，同时使用信号量确保只有一个线程能执行，执行完 block 后会唤醒其他所有等待的线程。</p>
-<h4 id="dispatch-barrier-async"><a href="#dispatch-barrier-async" class="headerlink" title="dispatch_barrier_async"></a>dispatch_barrier_async</h4><p>改变了 block 的 vtable 标记位，当它将要被取出执行时，会等待前面的 block 都执行完，然后在下一次循环中被执行。</p>
-<h4 id="dispatch-source"><a href="#dispatch-source" class="headerlink" title="dispatch_source"></a>dispatch_source</h4><p>可以用来实现定时器。所有的 source 会被提交到用户指定的队列，然后提交到 manager 队列中，按照触发时间排好序。随后找到最近触发的定时器，调用内核的 select 方法等待。等待结束后，依次唤醒 manager 队列和用户指定队列，最终触发一开始设置的回调 block。</p>
-<p>GCD 中的对象用 do_suspend_cnt 来表示是否暂停。队列默认处于启动状态，而 dispatch_source 需要手动启动。</p>
-<p>dispatch_after 函数依赖于 dispatch_source 定时器，它只是注册了一个定时器，然后在回调函数中执行 block。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/clang/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/clang/" itemprop="url">clang</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:47:49+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="clang-命令"><a href="#clang-命令" class="headerlink" title="clang 命令"></a>clang 命令</h3><p>1、重新编译.m文件</p>
-<pre><code>clang -rewrite-objc 文件</code></pre><p>或</p>
-<pre><code>clang -rewrite-objc -fobjc-arc -stdlib=libc++ -mmacosx-version-min=10.7 -fobjc-runtime=macosx-10.7 -Wno-deprecated-declarations main.m</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/charles原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/charles原理/" itemprop="url">charles原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:45:49+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="Charles抓包原理"><a href="#Charles抓包原理" class="headerlink" title="Charles抓包原理"></a>Charles抓包原理</h3><p>HTTPS为了兼顾安全与效率，同时使用了对称加密和非对称加密。数据是被对称加密传输的，对称加密过程需要客户端的一个密钥，为了确保能把该密钥安全传输到服务器端，采用非对称加密对该密钥进行加密传输，总的来说，对数据进行对称加密，对称加密所要使用的密钥通过非对称加密传输。</p>
-<p>Charles抓包采用的是中间人代理的模式</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/charles.png" alt="charles.png"></p>
-<p>1、客户端向服务器请求CA证书</p>
-<p>2、Charles拦截客户端的请求，伪装成客户端向服务器请求</p>
-<p>3、服务器向客户端(Charles)返回服务器自己的CA证书</p>
-<p>4、Charles拦截服务器的响应，获取服务器证书公钥，然后自己制作一张证书，将服务器证书替换后发送给客户端。（这一步，Charles拿到了服务器证书的公钥）</p>
-<p>5、客户端接收到“服务器”（实际上是Charles）的证书后，生成一个对称密钥，用Charles的公钥加密，发送给“服务器”（Charles）</p>
-<p>6、Charles拦截客户端的响应，用自己的私钥解密对称密钥，然后用服务器证书公钥加密，发送给服务器。（这一步，Charles拿到了对称密钥</p>
-<p>7、服务器用自己的私钥解密对称密钥，向“客户端”（Charles）发送响应</p>
-<p>8、Charles拦截服务器的响应，替换成自己的证书后发送给客户端</p>
-<p>9、至此，连接建立，Charles拿到了 服务器证书的公钥 和 客户端与服务器协商的对称密钥，之后就可以解密或者修改加密的报文了。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/block/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/block/" itemprop="url">block</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:42:23+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="深入理解block"><a href="#深入理解block" class="headerlink" title="深入理解block"></a>深入理解block</h3><h4 id="Block的使用"><a href="#Block的使用" class="headerlink" title="Block的使用"></a>Block的使用</h4><pre><code>// 定义Block类型
-typedef void(^Block)(NSString *name);
-// 作为属性
-@property (nonatomic, copy) void (^Block)(NSString *name);
-// 作为参数
-- (void)addAction:(void(^)(NSString *name))result;
-
-Block block = ^(NSString *name){
-
-};
-self.Block = ^(NSString *name) {
-
-};
-void (^block)(NSString *temp) = ^(NSString *temp){
-
-};</code></pre><h4 id="Block的内存管理"><a href="#Block的内存管理" class="headerlink" title="Block的内存管理"></a>Block的内存管理</h4><p>iOS 将Block分为三类，<strong>NSGlobalBlock</strong>，<strong>NSStackBlock</strong>，<strong>NSMallocBlock</strong>。其在内存中的存储如下。</p>
+            <h3 id="Runloop"><a href="#Runloop" class="headerlink" title="Runloop"></a>Runloop</h3><h4 id="线程中的runloop"><a href="#线程中的runloop" class="headerlink" title="线程中的runloop"></a>线程中的runloop</h4><p>在开发中，我们会经常接触到线程，比如在主线程中更新UI，在子线程中异步请求等，而线程中最重要的一个组成部分便是runloop,其是用来管理线程的。runloop在线程中有以下两个作用：</p>
+<ol>
+<li>保证线程不退出</li>
+<li>监听并处理事件，使得线程有事件时工作，无事件时睡眠</li>
+</ol>
+<p>每个线程中都有一个runloop，主线程中的runloop是在应用程序启动时创建的，默认是开启的，子线程中的runloop采用的是延迟加载的方式，如果我们不主动获取，子线程的runloop是不会创建的。</p>
+<h3 id="解析runloop"><a href="#解析runloop" class="headerlink" title="解析runloop"></a>解析runloop</h3><p>runloop三要素: Modes(模式)、sources(源)、Observers(观察者)。当有事件源触发时，runloop会被唤醒并处理事件源的方法，并通知该runloop运行模式下的所有观察者。</p>
+<h4 id="Run-Loop-Modes-运行循环模式"><a href="#Run-Loop-Modes-运行循环模式" class="headerlink" title="Run Loop Modes(运行循环模式)"></a>Run Loop Modes(运行循环模式)</h4><p>运行循环在工作时，会有多种运行模式。我们常用到的模式有：NSDefaultRunLoopMode和NSRunLoopCommonModes 。每个RunLoop Mode都可以看作是一个集合，其中包含了其监听的事件源以及在事件发生时需要通知的RunLoop Observers。在相应的模式下，只有对应于该模式的source会被处理，同样也只有对应于该模式的observer会被通知。其实运行循环模式起到一个过滤作用，可以过滤到我们不关心的其他的source事件。</p>
+<p>Cocoa 和 Core Foundation框架定义了一个默认的和一些常用的运行循环模式，如下表：</p>
 <table>
 <thead>
 <tr>
-<th>Block</th>
-<th>存储</th>
+<th>Mode</th>
+<th>Name</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><strong>NSGlobalBlock</strong></td>
-<td>全局区</td>
+<td>Default</td>
+<td>NSDefaultRunLoopMode (Cocoa) kCFRunLoopDefaultMode (Core Foundation)</td>
+<td>默认模式，一般设置为此模式.</td>
 </tr>
 <tr>
-<td><strong>NSStackBlock</strong></td>
-<td>栈区</td>
+<td>Connection</td>
+<td>NSConnectionReplyMode (Cocoa)</td>
+<td>Cocoa用该模式来监听NSConnection请求的回复，该模式为系统使用，我们一般不会用到</td>
 </tr>
 <tr>
-<td><strong>NSMallocBlock</strong></td>
-<td>堆区</td>
+<td>Modal</td>
+<td>NSModalPanelRunLoopMode (Cocoa)</td>
+<td>Cocoa 用此模式来区分 modal panels事件.</td>
+</tr>
+<tr>
+<td>Event tracking</td>
+<td>NSEventTrackingRunLoopMode (Cocoa)</td>
+<td>Cocoa 在该模式下，限制其他source的事件</td>
+</tr>
+<tr>
+<td>Common modes</td>
+<td>NSRunLoopCommonModes (Cocoa)kCFRunLoopCommonModes (Core Foundation)</td>
+<td>这是一个可配置的模式组，在该模式下的source 事件，和模式组里的其他模式都会产生联系。在Cocoa框架中，该模式默认包含Default、Modal和 Event  tracking 三种模式，在Core Foundation中默认只包含Default模式，我们可以用CFRunLoopAddCommonMode 函数来添加自定义的模式。</td>
+</tr>
+<tr>
+<td>#### Run Loop Sources</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>先来看runloop和sources的结构图</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><img src="https://raw.githubusercontent.com/xuehan111/images/master/runloop.png" alt="runloop"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>runloop可以监听并处理事件，其监听的事件源有两种类型：<strong>Input sources(输入源)</strong> 和** Timer sources(定时器源)**。输入源异步传递事件到线程中，通常消息来自其它线程或不同的应用，定时器源同步传递事件。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>* Input  sources</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>输入源异步发送事件到线程中，输入源共有两种类型:一种是基于端口的输入源(Port-based input sources)，一种是自定义输入源(Custom input sources)。基于端口的数据源监听应用的Mach端口，自定义输入源监听自定义的事件源，二者的唯一区别是：基于端口的输入源的信号是由内核自动触发的，自定义输入源的信号是由其它线程手动触发的。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>- Port-Based Sources</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Cocoa 和 Core Foundation框架给我们提供了一些创建基于端口的源的对象和函数。</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>在 Cocoa中，我们只需要创建一个 NSPort对象，并将其添加到运行循环中就可以了,NSPort对象会自己创建输入源。</td>
+<td></td>
+<td></td>
 </tr>
 </tbody></table>
-<p><strong>NSGlobalBlock</strong>: 么有引用外部变量，或者引用了静态变量或全局变量</p>
-<p><strong>NSStackBlock</strong>: 在MRC下，引用了外部局部变量的block</p>
-<p><strong>NSMallocBlock</strong>: 在ARC下，引用了外部局部变量的block</p>
-<p> <code>Note:在ARC下，引用了外部局部变量的block,会进行copy操作，所以在ARC下不存在__NSStackBlock__</code>。</p>
-<h5 id="Block自己的内存管理"><a href="#Block自己的内存管理" class="headerlink" title="Block自己的内存管理"></a>Block自己的内存管理</h5><p>对于block，有两个内存管理方法：Block_copy, Block_release;Block_copy与copy等效， Block_release与release等效；</p>
+<pre><code>NSPort *port = [NSPort port];
+[port scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];</code></pre><p>  但是在Core Foundation中，我们就需要手动创建端口和输入源，我们可以用CFMachPortRef, CFMessagePortRef, or CFSocketRef来创建相应的对象</p>
 <ul>
-<li>不管是对block进行retian,copy,release,block的引用计数都不会增加，始终为1；</li>
-<li>NSGlobalBlock:使用retain,copy, release都无效，block依旧存在全局区，且没有释放, 使用copy和retian只是返回block的指针；</li>
-<li>NSStackBlock:使用retain,release操作无效；栈区block会在方法返回后将block空间回收； 使用copy将栈区block复制到堆区，可以长久保留block的空间，以供后面的程序使用；</li>
-<li>NSMallocBlock:支持retian,release，虽然block的引用计数始终为1，但内存中还是会对引用进行管理，使用Block_copy引用+1， Block_release引用-1； 对于NSMallocBlock使用copy之后,不会产生新的block，只是增加了一次引用，类似于使用retian;</li>
+<li><p>Custom input sources<br> 我们也可以自定义输入源，自定义输入源时，我们需要配置定义输入源的行为，运行循环模式，输入源事件的传递机制，以及销毁输入源等。</p>
+<ul>
+<li>Cocoa Perform Selector Sources<br>除了基于端口的源，Cocoa也定义了自定义输入源－－Perform Selector Sources，这使得我们可以在任意线程中执行我们的方法，Perform Selector 的方法在目标线程中是串行执行的，这样就解决了多个方法在一个线程中执行的同步问题，和基于端口的源不同，Perform Selector 在方法执行完成之后，会将自己从runloop中移除。</li>
 </ul>
-<h5 id="Block引用变量的内存管理"><a href="#Block引用变量的内存管理" class="headerlink" title="Block引用变量的内存管理"></a>Block引用变量的内存管理</h5><p>Block 引用局部变量，是值传递，引用全局变量和静态变量，是指针传递。<br>Block的结构如下：</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/block_layout.png" alt="Block_Layout"></p>
-<p>对于<strong>block修饰的变量，如:</strong>block int a = 10;会在栈区用block结构体方式保存。</p>
-<pre><code>struct __Block_byref_b_0 {
-      void *__isa;
-    __Block_byref_b_0 *__forwarding;
-     int __flags;
-     int __size;
-     int a;
-};</code></pre><p>此时，__forwarding 指针指向block自身。</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/stackBlock.png" alt="stackBlock.png"></p>
-<p>使用Block_copy复制到对上之后，栈区的block中的__forwarding指向堆区的地址。</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/heapBlock.png" alt="heapBlock.png"></p>
-<h4 id="Blcok-copy"><a href="#Blcok-copy" class="headerlink" title="Blcok_copy"></a>Blcok_copy</h4><pre><code>void *_Block_copy(const void *arg) { 
-    return _Block_copy_internal(arg, WANTS_ONE); 
-} </code></pre><p>上面的方法调用了_Block_copy_internal()函数，查看_Block_copy_internal方法的实现：</p>
-<pre><code>static void *_Block_copy_internal(const void *arg, const int flags) { 
-    struct Block_layout *aBlock; 
-    const bool wantsOne = (WANTS_ONE &amp;amp; flags) == WANTS_ONE; 
+<p><strong>Note:</strong>  当我们在目标线程上执行我们的方法时，目标线程的运行循环必须开启，否则方法不会执行。主线程的运行循环默认开启，子线程的运行循环默认不开启，因此我们想要在子线程上运行我们的程序，需要手动开启子线程的运行循环。</p>
+<ul>
+<li>Timer Sources(定时器源)<br>定时器源发送同步事件到我们的线程中，对于线程来说，定时器是一种通知自己做一些事情的方式。虽然，定时器源会发出基于时间的通知，但是定时器并不是实时机制，跟输入源一样，定时器源也跟runloop的运行模式相关，如果定时器的模式，不在运行循环当前监控的模式中，定时器方法是不会执行的。另外如果定时器触发时，运行循环正在执行操作，定时器将会在下次运行循环调用时触发。</li>
+</ul>
+</li>
+</ul>
+<h4 id="Run-Loop-Observers"><a href="#Run-Loop-Observers" class="headerlink" title="Run Loop Observers"></a>Run Loop Observers</h4><p>运行循环在运行时，会发出一些通知，我们可以通过注册Observers来监听运行循环当前所处的状态，运行循环状态有以下几种：</p>
+<ul>
+<li>即将进入运行循环(kCFRunLoopEntry)</li>
+<li>运行循环将要处理定时器(kCFRunLoopBeforeTimers)</li>
+<li>运行循环将要处理输入源(kCFRunLoopBeforeSources)</li>
+<li>运行循环将要进入睡眠(kCFRunLoopBeforeWaiting)</li>
+<li>运行循环被唤醒，但是还未处理事件(kCFRunLoopAfterWaiting)</li>
+<li>运行循环退出(kCFRunLoopExit)</li>
+</ul>
+<h4 id="The-Run-Loop-Sequence-of-Events-运行循环执行事件的顺序"><a href="#The-Run-Loop-Sequence-of-Events-运行循环执行事件的顺序" class="headerlink" title="The Run Loop Sequence of Events(运行循环执行事件的顺序)"></a>The Run Loop Sequence of Events(运行循环执行事件的顺序)</h4><ol>
+<li><p>通知观察者即将进入运行循环</p>
+</li>
+<li><p>通知观察者将要处理定时器事件</p>
+</li>
+<li><p>通知观察者将要处理输入源(基于端口的源除外)事件</p>
+</li>
+<li><p>处理输入源(基于端口的源除外)事件</p>
+</li>
+<li><p>如果有基于端口的输入源事件，则立即处理。然后跳到第9步。</p>
+</li>
+<li><p>通知观察者线程将要进入休眠</p>
+</li>
+<li><p>线程进入休眠，等待被唤醒，下列事件可以唤醒线程</p>
+<ul>
+<li>基于端口的源的事件</li>
+<li>定时器事件</li>
+<li>设置的runloop超时时间到期</li>
+<li>runloop主动被唤醒</li>
+</ul>
+</li>
+<li><p>通知观察者线程刚被唤醒</p>
+</li>
+<li><p>处理挂起的事件</p>
+<ul>
+<li>如果有用户定义的定时器事件触发，处理定时器事件，并且重启运行循环，进入第2步</li>
+<li>如果触发的是输入源事件，传送事件</li>
+<li>如果runloop被主动唤醒，并且没有超时，重启runloop，进入第2步.</li>
+</ul>
+</li>
+<li><p>通知观察者运行循环将要退出</p>
+</li>
+</ol>
 
-    // 1 
-    if (!arg) return NULL; 
-
-    // 2 
-    aBlock = (struct Block_layout *)arg; 
-
-    // 3 
-    if (aBlock-&gt;flags &amp;amp; BLOCK_NEEDS_FREE) { 
-        // latches on high 
-        latching_incr_int(&amp;amp;aBlock-&gt;flags); 
-        return aBlock; 
-    } 
-
-    // 4 
-    else if (aBlock-&gt;flags &amp;amp; BLOCK_IS_GLOBAL) { 
-        return aBlock; 
-    } 
-
-    // 5 
-    struct Block_layout *result = malloc(aBlock&gt;descriptor-&gt;size); 
-    if (!result) return (void *)0; 
-
-    // 6 
-    memmove(result, aBlock, aBlock-&gt;descriptor-&gt;size); // bitcopy first 
-
-    // 7 
-    result-&gt;flags &amp;amp;= ~(BLOCK_REFCOUNT_MASK);    // XXX not needed 
-    result-&gt;flags |= BLOCK_NEEDS_FREE | 1; 
-
-    // 8 
-    result-&gt;isa = _NSConcreteMallocBlock; 
-
-    // 9 
-    if (result-&gt;flags &amp;amp; BLOCK_HAS_COPY_DISPOSE) { 
-        (*aBlock-&gt;descriptor-&gt;copy)(result, aBlock); // do fixup 
-    } 
-
-    return result; 
-} </code></pre><p>下面来看看该方法都做了些什么事情：</p>
-<p>1、如果传入的参数是NULL则直接返回NULL。这样可以保证传入一个NULL block时函数的安全性。</p>
-<p>2、将参数强制转换为一个指针，该指针指向一个Block_layout结构对象。实际上在第一集中就介绍了Block_layout结构：这是一个内部使用的数据结构，该结构组成一个block，其中包含一个block的实现函数，以及另外几个元数据。</p>
-<p>3、 如果block的flags包含BLOCK_NEEDS_FREE，说明这是一个堆block(a heap block)。这种情况下，需要做的事情就是增加引用计数(reference count)，然后将同一个的block返回。</p>
-<p>4、如果block是一个全局block(参考第一集)，那么不用做任何事情，直接返回同一个block即可——因为全局block是一个单例(singleton)。</p>
-<p>5、如果到这一步了，可以肯定该block肯定被分配在栈上。这种情况，需要将block拷贝到堆上。这也是最有趣的一部分。首先是利用malloc()函数在堆上创建block对应size大小的内存空间。如果失败了，就返回NULL，否则继续往下执行。</p>
-<p>6、 利用memmove()函数将分配在栈中的block按位拷贝至刚刚在堆上分配的空间中。按位拷贝可以确保block中的所有元数据都能准确的进行拷贝，例如block的descriptor。</p>
-<p>7、接着需要更新一下block的flags。第一行代码是确保引用计数被设置为0。后面紧跟的注释表示这不是必须的——估计此时引用计数已经是0了。我猜测这行代码的作用是为了防止潜在的bug，会引起引用计数不为0的情况。第二行代码是设置BLOCK_NEEDS_FREE标志，这标示该block是一个堆block，当引用计数变为0时，需要free掉。后面紧跟的| 1是将block的引用计数设置为1。</p>
-<p>8、将block的isa指针设置为 _NSConcreteMallocBlock，这就意味着该block是一个堆block。</p>
-<p>9、最后，如果block有一个拷贝辅助函数(a copy helper function)，那么就调用它。如果有必要的话，表一起会生成一个拷贝辅助函数。例如block需要拷贝对象的时候，拷贝辅助函数会retain住已经拷贝的对象。</p>
-<p>####Block_release<br>与Block_copy对应的是Block_release()。同样，Block_release()也是一个宏定义，如下所示：</p>
-<pre><code>#define Block_release(...) _Block_release((const void *)(__VA_ARGS__)) 
-
-void _Block_release(void *arg) { 
-    // 1 
-    struct Block_layout *aBlock = (struct Block_layout *)arg; 
-    if (!aBlock) return; 
-
-    // 2 
-    int32_t newCount; 
-    newCount = latching_decr_int(&amp;amp;aBlock-&gt;flags) &amp;amp; BLOCK_REFCOUNT_MASK; 
-
-    // 3 
-    if (newCount &gt; 0) return; 
-
-    // 4 
-    if (aBlock-&gt;flags &amp;amp; BLOCK_NEEDS_FREE) { 
-        if (aBlock-&gt;flags &amp;amp; BLOCK_HAS_COPY_DISPOSE)(*aBlock-&gt;descriptor-&gt;dispose)(aBlock); 
-        _Block_deallocator(aBlock); 
-    } 
-
-    // 5 
-    else if (aBlock-&gt;flags &amp;amp; BLOCK_IS_GLOBAL) { 
-        ; 
-    } 
-
-    // 6 
-    else { 
-        printf(&quot;Block_release called upon a stack Block: %p, ignored\n&quot;, (void *)aBlock); 
-    } 
-} </code></pre><p>1、 首先将参数强制转换为Block_layout结构。如果传入的是NULL，那么为了函数的安全起见，将直接返回。</p>
-<p>2、将block的引用计数标志位减1(还记得Block_copy()中将这个引用计数标志位设置为1吗？)。</p>
-<p>3、如果newCount大于0，说明还有别的对象引用了这个block，所以并不需要立即释放block，只需简单的返回即可。</p>
-<p>4、否则，如果flags中包含BLOCK_NEEDS_FREE，那么说明这个block是分配到堆上的，并且如果引用计数为0，那么需要释放这个block。首先是调用了block的dispose辅助函数，该函数跟copy辅助函数相反，负责做相反的操作，例如释放掉所有在block中拷贝的变量等。最后使用_Block_deallocator函数释放掉block，如果你去runtime.c文件中看看，会发现该函数的尾部是一个指向free的函数指针，也就是释放掉malloc分配的内存。</p>
-<p>5、如果block是全局的，那么什么事情也不用做。</p>
-<p>6、如果代码执行到这里了，会发生一些奇怪的事情：因为正在尝试将栈上的block释放掉，所以这行代码是为了提醒开发者的。在程序实际运行过程中，永远不会看到这里的提示。</p>
-<h4 id="Block-循环引用的解决"><a href="#Block-循环引用的解决" class="headerlink" title="Block 循环引用的解决"></a>Block 循环引用的解决</h4>
           
         
       
@@ -1746,7 +1905,7 @@ void _Block_release(void *arg) {
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/App启动/">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/消息机制/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="疯狂小柠檬">
@@ -1765,7 +1924,7 @@ void _Block_release(void *arg) {
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/undefined/App启动/" itemprop="url">App启动</a></h1>
+                <a class="post-title-link" href="/undefined/消息机制/" itemprop="url">消息机制</a></h1>
         
 
         <div class="post-meta">
@@ -1777,8 +1936,8 @@ void _Block_release(void *arg) {
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:39:35+08:00">
-                2019-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-05-15T00:39:00+08:00">
+                2016-05-15
               </time>
             
 
@@ -1817,9 +1976,533 @@ void _Block_release(void *arg) {
       
         
           
-            <h3 id="App启动加载"><a href="#App启动加载" class="headerlink" title="App启动加载"></a>App启动加载</h3><p>当我们点击App图标时，便进入了App的启动过程，整个过程大致进行了如下操作:<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/ios_app_start.png" alt="app start"></p>
-<h3 id="启动优化"><a href="#启动优化" class="headerlink" title="启动优化"></a>启动优化</h3><p><a href="http://www.cocoachina.com/ios/20180802/24423.html" target="_blank" rel="noopener">链接</a></p>
+            <h3 id="消息机制"><a href="#消息机制" class="headerlink" title="消息机制"></a>消息机制</h3><h4 id="方法定义"><a href="#方法定义" class="headerlink" title="方法定义"></a>方法定义</h4><p>Runtime中的方法定义为:</p>
+<pre><code>struct objc_method {
+  SEL method_name                                          OBJC2_UNAVAILABLE;
+  char *method_types                                       OBJC2_UNAVAILABLE;
+  IMP method_imp                                           OBJC2_UNAVAILABLE;
+}  OBJC2_UNAVAILABLE;</code></pre><h4 id="SEL"><a href="#SEL" class="headerlink" title="SEL"></a>SEL</h4><p>SEL是根据方法的名称哈希化的一个值，相当于是一个方法的映射，或者说是方法的签名，我们可以根据这个值，找到对应的方法。只要方法名称相同，其值就是唯一的，因此在同一个类或者有继承关系的类中不能有相同的方法名，这也是OC不支持方法重载的原因。我们可以用@selector()来获取这个值。</p>
+<p>SEL的存在，是为了加快方法的查询速度，省去了字符串(即方法名)比对的时间，可以直接用SEL生成的KEY去查找，这样效率更高，就像我们直接根据NSDictionary的Key去读取相应的值一样。</p>
+<h4 id="IMP"><a href="#IMP" class="headerlink" title="IMP"></a>IMP</h4><p>IMP是一个指向函数的指针，其代表方法实现函数的入口地址，得到这个值，就找到了方法实现的入口。runtime 通过SEL找到IMP，进而实现方法调用的。</p>
+<h4 id="OC方法调用"><a href="#OC方法调用" class="headerlink" title="OC方法调用"></a>OC方法调用</h4><p>OC中的方法调用，其实是通过消息来传递的，我们甚至可以把方法叫做消息。</p>
+<p>当我们在调用[Object message]时，runtime做了以下处理：</p>
+<ol>
+<li>将这个方法调用转换成objc_msgSend函数</li>
+<li>objc_msgSend函数会根据Object的isa指针，找到其所属的类，然后在其类中的方法列表中查找这个message对应的selector，</li>
+<li>如果没有找到，objc_msgSend会根据Object的superclass指针，找到该对象所属类的父类，然后在父类的方法列表中查找message对应的selector，依此，objc_msgSend会在类的继承结构中一直向上寻找，直到到达NSObject类。</li>
+<li>一旦定位到selector.函数就会传入方法的接收者及其他所需要的参数，从而调用这个方法的实现。</li>
+</ol>
+<p>如果直到NSObject类中，还么有找到方法的实现IMP,那么runtime会进入消息转发流程</p>
+<h3 id="消息转发"><a href="#消息转发" class="headerlink" title="消息转发"></a>消息转发</h3><p>如下图:</p>
+<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91.png" alt="消息转发"></p>
+<p>如果直到NSObject类，仍然没有找到方法的实现，那么系统会去看我们是否是动态实现了该方法.<br>如果是实例方法，会调用对象所在类的</p>
+<pre><code>+ (BOOL)resolveInstanceMethod:(SEL)sel</code></pre><p> 如果是类方法，会调用 </p>
+<pre><code>+ (BOOL)resolveClassMethod:(SEL)sel。</code></pre><p>  代码示例：</p>
+<p>Person.h</p>
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+@interface Person : NSObject
+@end</code></pre><p> Person.m</p>
+<pre><code>#import &quot;Person.h&quot;
+#import &lt;objc/runtime.h&gt;
 
+void setNameImp(id self, SEL _cmd, NSString *name){
+    NSLog(@&quot;%@&quot;,name);
+}
+
+@implementation Person
+
++ (BOOL)resolveInstanceMethod:(SEL)sel{
+    NSLog(@&quot;%s&quot;,__FUNCTION__);
+    if(sel == @selector(setName:)){
+        class_addMethod(self, sel, (IMP)setNameImp, &quot;v@:@&quot;);
+        return YES;
+    }
+    return [super resolveInstanceMethod:sel];
+}
+@end</code></pre><p>main.m</p>
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+#import &quot;Person.h&quot;
+
+int main(int argc, const char * argv[]) {
+  @autoreleasepool {
+    Person *p = [[Person alloc] init];
+    [p performSelector:@selector(setName:) withObject:@&quot;百客&quot;];
+  }
+  return 0;
+}</code></pre><p> 输出结果：</p>
+<pre><code>+[Person resolveInstanceMethod:]
+百客</code></pre><p>如果动态方法解析时，没有处理传递的消息，那么系统就会走转发流程。<strong>动态解析的两个方法是在消息转发前执行的，如果想跳过动态解析过程，直接走消息转发流程，直接将两个方法的返回值设为NO</strong></p>
+<h4 id="Message-Forwarding"><a href="#Message-Forwarding" class="headerlink" title="Message Forwarding"></a>Message Forwarding</h4><p>运行时，如果走到了转发流程阶段，系统会先判断是否转移了消息的接收者。</p>
+<ol>
+<li><p>转移消息的接收者<br>通过</p>
+<pre><code>- forwardingTargetForSelector:</code></pre><p>可以转移消息的接收者，如果有别的对象可以实现该方法，就直接让那个对象来处理该消息。<strong>不管另一对象的方法是公有还是私有，只要实现了就行</strong></p>
+<pre><code>- (id)forwardingTargetForSelector:(SEL)aSelector{
+  if(@selector(setName:) == aSelector){
+     Student *s = [[Student alloc] init];
+     return s;
+  }
+  return [super forwardingTargetForSelector:aSelector];
+ }      </code></pre><p>   Student.m</p>
+<pre><code>#import &quot;Student.h&quot;
+
+@implementation Student
+- (void)setName:(NSString *)name{
+  NSLog(@&quot;%@--&quot;,name);
+}
+@end</code></pre><p><strong>Note:该方式只是转移消息的接受者，不能对传递的消息做修改。</strong></p>
+</li>
+<li><p>完整转发<br>如果上述方式没有对转发的消息做处理，那么系统就会走完整的转发流程。<br>系统会先通过 </p>
+<pre><code>- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector</code></pre><p>方法，找到最终响应传递的消息的方法的地址，然后再通过</p>
+<pre><code>- (void)forwardInvocation:(NSInvocation *)anInvocation</code></pre><p>来转发消息。如果通过第一个方法没有找到最终响应消息的方法的地址，第二个方法是不会执行的。</p>
+<p><strong>通过这种方式转发的消息，我们不仅可以转换消息的接收者，还可以对转发的消息做相应的修改。</strong></p>
+</li>
+</ol>
+<p>继续上面的代码，我们在Person.m中增加了如下代码，main.m中的代码没有做改动。</p>
+<p>  Person.m</p>
+<pre><code>- (void)forwardInvocation:(NSInvocation *)anInvocation{
+   NSString *name = @&quot;hello&quot;;
+   int age = 10;
+   [anInvocation setArgument:&amp;name atIndex:2];
+   [anInvocation setArgument:&amp;age atIndex:3];
+   anInvocation.selector = @selector(setName:age:);                  
+   Student *s = [[Student alloc] init];
+   if([s respondsToSelector:[anInvocation selector]]){
+     [anInvocation invokeWithTarget:s];
+   }else{
+     [super forwardInvocation:anInvocation];
+   }
+ }
+
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector{
+    NSMethodSignature *sign = [super methodSignatureForSelector:aSelector];
+    if(!sign){
+       Student *s = [[Student alloc] init];
+       sign = [s methodSignatureForSelector:@selector(setName:age:)];
+     }
+    return sign;
+ }</code></pre><p>在代码中，我们将转发给Person对象的setName消息，转发给了Student对象，并修改了消息的内容，最终<br>输出结果如下:</p>
+<pre><code>hello--10</code></pre><p>在代码中，我们将转发给Person对象的setName消息，转发给了Student对象，并修改了消息的内容，最终<br>输出结果如下:</p>
+<p>hello–10</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/typeEncoding/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/typeEncoding/" itemprop="url">类型编码</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-05-09T14:30:55+08:00">
+                2016-05-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="类型编码-TypeEncodings"><a href="#类型编码-TypeEncodings" class="headerlink" title="类型编码(TypeEncodings)"></a>类型编码(TypeEncodings)</h3><h4 id="类型编码"><a href="#类型编码" class="headerlink" title="类型编码"></a>类型编码</h4><p>为了帮助运行时系统，编译器将每个方法的返回值和参数编码成一个C字符串，并将这个字符串和OC的方法选择器进行关联。我们可以用编译器指令@encode来获取这个C字符串。当你给一个指定的类型(这个类型可以是基本数据类型，如int，可以是一个指针，一个结构体，类名等，也就是可以作为sizeof()参数的任何类型),@encode会返回一个将这个类型编码后的C字符串。总结为一句话：<strong>用一个C字符串来表示一个数据类型</strong></p>
+<p>举例：</p>
+<pre><code>int main(int argc, const char * argv[]) {
+  @autoreleasepool {
+    char *buf1 = @encode(int);
+    char *buf2 = @encode(float);
+    char *buf3 = @encode(NSString *);
+    NSLog(@&quot;%s&quot;,buf1);
+    NSLog(@&quot;%s&quot;,buf2);
+    NSLog(@&quot;%s&quot;,buf3);
+  }
+  return 0;
+}</code></pre><p>输出结果如下：</p>
+<pre><code>i
+f
+@</code></pre><p>下面这个列表列出了一些类型码及其代表的意义:</p>
+<table>
+<thead>
+<tr>
+<th align="center">Code</th>
+<th align="center">Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">c</td>
+<td align="center">A char</td>
+</tr>
+<tr>
+<td align="center">i</td>
+<td align="center">An int</td>
+</tr>
+<tr>
+<td align="center">s</td>
+<td align="center">A short</td>
+</tr>
+<tr>
+<td align="center">l</td>
+<td align="center">A long</td>
+</tr>
+<tr>
+<td align="center">l</td>
+<td align="center">is treated as a 32-bit quantity on 64-bit programs.</td>
+</tr>
+<tr>
+<td align="center">q</td>
+<td align="center">A long long</td>
+</tr>
+<tr>
+<td align="center">C</td>
+<td align="center">An unsigned char</td>
+</tr>
+<tr>
+<td align="center">I</td>
+<td align="center">An unsigned int</td>
+</tr>
+<tr>
+<td align="center">S</td>
+<td align="center">An unsigned short</td>
+</tr>
+<tr>
+<td align="center">L</td>
+<td align="center">An unsigned long</td>
+</tr>
+<tr>
+<td align="center">Q</td>
+<td align="center">An unsigned long long</td>
+</tr>
+<tr>
+<td align="center">f</td>
+<td align="center">A float</td>
+</tr>
+<tr>
+<td align="center">d</td>
+<td align="center">A double</td>
+</tr>
+<tr>
+<td align="center">B</td>
+<td align="center">A C++ bool or a C99 _Bool</td>
+</tr>
+<tr>
+<td align="center">v</td>
+<td align="center">A void</td>
+</tr>
+<tr>
+<td align="center">*</td>
+<td align="center">A character string (char *)</td>
+</tr>
+<tr>
+<td align="center">@</td>
+<td align="center">An object (whether statically typed or typed id)</td>
+</tr>
+<tr>
+<td align="center">#</td>
+<td align="center">A class object (Class)</td>
+</tr>
+<tr>
+<td align="center">:</td>
+<td align="center">A method selector (SEL)</td>
+</tr>
+<tr>
+<td align="center">[array type]</td>
+<td align="center">An array</td>
+</tr>
+<tr>
+<td align="center">{name=type…}</td>
+<td align="center">A structure</td>
+</tr>
+<tr>
+<td align="center">(name=type…)</td>
+<td align="center">A union</td>
+</tr>
+<tr>
+<td align="center">bnum</td>
+<td align="center">A bit field of num bits</td>
+</tr>
+<tr>
+<td align="center">^type</td>
+<td align="center">A pointer to type</td>
+</tr>
+<tr>
+<td align="center">?</td>
+<td align="center">An unknown type (among other things, this code is used for function pointers)</td>
+</tr>
+</tbody></table>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">注意:</span><br><span class="line"></span><br><span class="line">* OC 不支持 long double类型，@encode(long double)将会返回 d ，和double类型的编码一致。</span><br><span class="line">* c 数组，在经过编码后，会在类型前加上数组的个数，如存储12个float类型的指针数组，将会返回 [12^f]</span><br><span class="line">* 类对象会被当作结构体来处理，如@encode(NSObject)将会返回&#123;NSObject=#&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以将列表中的这些值打印出来</p>
+<pre><code>int main(int argc, const char * argv[]) {
+      @autoreleasepool {
+        NSLog(@&quot;char --&gt; %s&quot;,@encode(char));
+        NSLog(@&quot;int --&gt; %s&quot;,@encode(int));
+        NSLog(@&quot;short --&gt; %s&quot;,@encode(short));
+        NSLog(@&quot;long --&gt; %s&quot;,@encode(long));
+        NSLog(@&quot;long long --&gt; %s&quot;,@encode(long long));
+        NSLog(@&quot;unsigned char --&gt; %s&quot;,@encode(unsigned char));
+        NSLog(@&quot;unsigned int --&gt; %s&quot;,@encode(unsigned int));
+        NSLog(@&quot;unsigned short --&gt; %s&quot;,@encode(unsigned short));
+        NSLog(@&quot;unsigned long --&gt; %s&quot;,@encode(unsigned long long));
+        NSLog(@&quot;float --&gt; %s&quot;,@encode(float));
+        NSLog(@&quot;bool --&gt; %s&quot;,@encode(bool));
+        NSLog(@&quot;void --&gt; %s&quot;,@encode(void));
+        NSLog(@&quot;char * --&gt; %s&quot;,@encode(char *));
+        NSLog(@&quot;id --&gt; %s&quot;,@encode(id));
+        NSLog(@&quot;Class --&gt; %s&quot;,@encode(Class));
+        NSLog(@&quot;SEL --&gt; %s&quot;,@encode(SEL));
+        int array[] = {1,2,3};
+        NSLog(@&quot;int[] --&gt; %s&quot;,@encode(typeof(array)));
+        typedef struct person{
+            char *name;
+            int age;
+        }Person;
+        NSLog(@&quot;struct --&gt; %s&quot;,@encode(Person));
+
+        typedef union union_type{
+            char *name;
+            int a;
+        }Union;
+        NSLog(@&quot;union --&gt; %s&quot;,@encode(Union));
+
+        int a = 2;
+        int *b = {&amp;a};
+        NSLog(@&quot;int[] --&gt; %s&quot;,@encode(typeof(b)));
+
+    }
+  return 0;
+}</code></pre><p>打印结果和列表中所列相同，这里不再列出。</p>
+<h4 id="应用示例"><a href="#应用示例" class="headerlink" title="应用示例"></a>应用示例</h4><p>区分一个数组中NSNumber值的具体数据类型。</p>
+<pre><code>int main(int argc, const char * argv[]) {
+  @autoreleasepool {
+    NSNumber *num1 = [NSNumber numberWithInt:1];
+    NSNumber *num2 = [NSNumber numberWithFloat:1.5];
+    NSNumber *num3 = [NSNumber numberWithDouble:1.6];
+    NSNumber *num4 = [NSNumber numberWithChar:&apos;A&apos;];
+    NSArray *arr = @[num1,num2,num3,num4];
+    for (int i=0; i&lt;arr.count; i++) {
+        NSNumber *num = arr[i];
+        if(0 == strcmp([num objCType], @encode(int))){
+            NSLog(@&quot;num%d是int型数据&quot;,i);
+        }else if(0 == strcmp([num objCType], @encode(float))){
+            NSLog(@&quot;num%d是float型数据&quot;,i);
+        }else if(0 == strcmp([num objCType], @encode(double))){
+            NSLog(@&quot;num%d是double型数据&quot;,i);
+        }else if(0 == strcmp([num objCType], @encode(char))){
+            NSLog(@&quot;num%d是char型数据&quot;,i);
+        }else{
+            NSLog(@&quot;num%d是其它类型数据&quot;,i);
+        }
+    }
+  }
+  return 0;
+}</code></pre><h4 id="方法的类型编码"><a href="#方法的类型编码" class="headerlink" title="方法的类型编码"></a>方法的类型编码</h4><p>runtime系统预备了一些编码，这些编码在协议中声明方法时会用到。编码列表如下:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>r</td>
+<td>const</td>
+</tr>
+<tr>
+<td>n</td>
+<td>in</td>
+</tr>
+<tr>
+<td>N</td>
+<td>inout</td>
+</tr>
+<tr>
+<td>o</td>
+<td>out</td>
+</tr>
+<tr>
+<td>O</td>
+<td>bycopy</td>
+</tr>
+<tr>
+<td>R</td>
+<td>byref</td>
+</tr>
+<tr>
+<td>V</td>
+<td>oneway</td>
+</tr>
+</tbody></table>
+<h4 id="属性的类型编码"><a href="#属性的类型编码" class="headerlink" title="属性的类型编码"></a>属性的类型编码</h4><p>当我们声明属性时，编译器会产生一些与封装的类，类别或协议相关联的一些元数据，我们可以获得这些元数据类型作为一个@encode编译后的C字符串。总结为一句话：<strong>就是用一个C字符串来表示属性的一些描述信息</strong><br>我们可以通过property_getAttributes函数去获得属性的一个属性或者属性的其他属性经过@encode编码之后的C字符串。这个字符串以T开头，后面紧跟@encode编码后的C字符串，然后用‘,’分隔，最后以V紧跟实例变量的返回值结束。在T和V之间，属性的属性用下列字符来描述：</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R</td>
+<td>The property is read-only (readonly).</td>
+</tr>
+<tr>
+<td>C</td>
+<td>The property is a copy of the value last assigned (copy).</td>
+</tr>
+<tr>
+<td>&amp;</td>
+<td>The property is a reference to the value last assigned (retain).</td>
+</tr>
+<tr>
+<td>N</td>
+<td>The property is non-atomic (nonatomic).</td>
+</tr>
+<tr>
+<td>G<name></name></td>
+<td>The property defines a custom getter selector name. The name follows the G (for example, GcustomGetter,).</td>
+</tr>
+<tr>
+<td>S<name></name></td>
+<td>The property defines a custom setter selector name. The name follows the S (for example, ScustomSetter:,).</td>
+</tr>
+<tr>
+<td>D</td>
+<td>The property is dynamic (@dynamic).</td>
+</tr>
+<tr>
+<td>W</td>
+<td>The property is a weak reference (__weak).</td>
+</tr>
+<tr>
+<td>P</td>
+<td>The property is eligible for garbage collection.</td>
+</tr>
+<tr>
+<td>t<encoding></encoding></td>
+<td>Specifies the type using old-style encoding.</td>
+</tr>
+</tbody></table>
+<h4 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h4><p>Person.h</p>
+<pre><code>@interface Person : NSObject
+@property (nonatomic,copy) NSString *name;
+@end</code></pre><p>main.m</p>
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+#import &quot;Person.h&quot;
+#import &lt;objc/runtime.h&gt;
+
+int main(int argc, const char * argv[]) {
+  @autoreleasepool {
+    Person *p = [[Person alloc] init];
+    unsigned int outCount = 0;
+    objc_property_t *props = class_copyPropertyList([p class], &amp;outCount);
+    for (int i=0 ; i&lt;outCount; i++) {
+        objc_property_t prop = props[i];
+        NSLog(@&quot;%s&quot;,property_getAttributes(prop));
+    }
+  }
+  return 0;
+}</code></pre><p>输出结果:</p>
+<pre><code>T@&quot;NSString&quot;,C,N,V_name</code></pre><p>输出结果解释：</p>
+<pre><code>T@&quot;NSString&quot;:表示这个属性的类型是 NSString 型
+C：表示属性的引用类型是 copy
+N：表示 nonatomic
+V_name: 表示属性生成的实例变量是：_name,我们可以用_name来访问属性name的值。</code></pre>
           
         
       

@@ -259,393 +259,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/App的编译过程/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/App的编译过程/" itemprop="url">App的编译过程</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:35:26+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="App的编译"><a href="#App的编译" class="headerlink" title="App的编译"></a>App的编译</h3><h4 id="Command-R发生了什么"><a href="#Command-R发生了什么" class="headerlink" title="Command+R发生了什么"></a>Command+R发生了什么</h4><ul>
-<li>写入辅助文件：将项目的文件结构对应表、将要执行的脚本、项目依赖库的文件结构对应表写成文件，方便后面使用；并且创建一个 .app 包，后面编译后的文件都会被放入包中；</li>
-<li>运行预设脚本：Cocoapods 会预设一些脚本，当然你也可以自己预设一些脚本来运行。这些脚本都在 Build Phases 中可以看到；</li>
-<li>编译文件：针对每一个文件进行编译，生成可执行文件 Mach-O，这过程 LLVM 的完整流程，前端、优化器、后端；</li>
-<li>链接文件：将项目中的多个可执行文件合并成一个文件；</li>
-<li>拷贝资源文件：将项目中的资源文件拷贝到目标包；</li>
-<li>编译 storyboard 文件：storyboard 文件也是会被编译的；</li>
-<li>链接 storyboard 文件：将编译后的 storyboard 文件链接成一个文件；</li>
-<li>编译 Asset 文件：我们的图片如果使用 Assets.xcassets 来管理图片，那么这* 些图片将会被编译成机器码，除了 icon 和 launchImage；</li>
-<li>运行 Cocoapods 脚本：将在编译项目之前已经编译好的依赖库和相关资源拷贝到包中。</li>
-<li>生成 .app 包</li>
-<li>对包进行签名、验证</li>
-</ul>
-<h3 id="编译优化"><a href="#编译优化" class="headerlink" title="编译优化"></a>编译优化</h3><ul>
-<li><p>Build Active Architecture Only</p>
-<pre><code>Note: 
-在Debug模式下，设置为YES，只会生成指定指令集的二进制包,
-在release模式下设置为NO</code></pre></li>
-<li><p>Optimization Level</p>
-<pre><code>该变量有以下值可以设置
-* None: 编译器不会尝试优化代码，当你专注解决逻辑错误、编译速度快时使用此项。</code></pre><ul>
-<li><p>Fast: 编译器执行简单的优化来提高代码的性能，同时最大限度的减少编译时间，该选项在编译过程中会使用更多的内存。</p>
-</li>
-<li><p>Faster: 编译器执行所有优化，增加编译时间，提高代码的性能。</p>
-</li>
-<li><p>Fastest: 编译器执行所有优化，改善代码的速度，但会增加代码长度，编译速度慢。</p>
-</li>
-<li><p>Fastest, Smallest: 编译器执行所有优化，不会增加代码的长度，它是执行文件占用更少内存的首选方案</p>
-<pre><code>在Debug环境下设置为None，从而减少编译时间
-在Release环境下设置为Fastest, Smalllest，这样既能执行所有的优化而不增加代码长度，又能使执行文件占用更少的内存</code></pre></li>
-</ul>
-</li>
-<li><p>Debug Information Format</p>
-<p>  该值表示是否将调试信息加入到可执行文件中，即是否生成dSYM文件</p>
-<ul>
-<li><p>DWARF  不生成dSYM调试文件</p>
-</li>
-<li><p>DWARF with dSYM file  生成调试文件</p>
-<pre><code>在Debug环境下设置为DWARF，在release环境下设置为DWARF with dSYM file</code></pre></li>
-</ul>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/消息机制/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="疯狂小柠檬">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lemon's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/undefined/消息机制/" itemprop="url">消息机制</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T18:02:04+08:00">
-                2019-08-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="消息机制"><a href="#消息机制" class="headerlink" title="消息机制"></a>消息机制</h3><h4 id="方法定义"><a href="#方法定义" class="headerlink" title="方法定义"></a>方法定义</h4><p>Runtime中的方法定义为:</p>
-<pre><code>struct objc_method {
-  SEL method_name                                          OBJC2_UNAVAILABLE;
-  char *method_types                                       OBJC2_UNAVAILABLE;
-  IMP method_imp                                           OBJC2_UNAVAILABLE;
-}  OBJC2_UNAVAILABLE;</code></pre><h4 id="SEL"><a href="#SEL" class="headerlink" title="SEL"></a>SEL</h4><p>SEL是根据方法的名称哈希化的一个值，相当于是一个方法的映射，或者说是方法的签名，我们可以根据这个值，找到对应的方法。只要方法名称相同，其值就是唯一的，因此在同一个类或者有继承关系的类中不能有相同的方法名，这也是OC不支持方法重载的原因。我们可以用@selector()来获取这个值。</p>
-<p>SEL的存在，是为了加快方法的查询速度，省去了字符串(即方法名)比对的时间，可以直接用SEL生成的KEY去查找，这样效率更高，就像我们直接根据NSDictionary的Key去读取相应的值一样。</p>
-<h4 id="IMP"><a href="#IMP" class="headerlink" title="IMP"></a>IMP</h4><p>IMP是一个指向函数的指针，其代表方法实现函数的入口地址，得到这个值，就找到了方法实现的入口。runtime 通过SEL找到IMP，进而实现方法调用的。</p>
-<h4 id="OC方法调用"><a href="#OC方法调用" class="headerlink" title="OC方法调用"></a>OC方法调用</h4><p>OC中的方法调用，其实是通过消息来传递的，我们甚至可以把方法叫做消息。</p>
-<p>当我们在调用[Object message]时，runtime做了以下处理：</p>
-<ol>
-<li>将这个方法调用转换成objc_msgSend函数</li>
-<li>objc_msgSend函数会根据Object的isa指针，找到其所属的类，然后在其类中的方法列表中查找这个message对应的selector，</li>
-<li>如果没有找到，objc_msgSend会根据Object的superclass指针，找到该对象所属类的父类，然后在父类的方法列表中查找message对应的selector，依此，objc_msgSend会在类的继承结构中一直向上寻找，直到到达NSObject类。</li>
-<li>一旦定位到selector.函数就会传入方法的接收者及其他所需要的参数，从而调用这个方法的实现。</li>
-</ol>
-<p>如果直到NSObject类中，还么有找到方法的实现IMP,那么runtime会进入消息转发流程</p>
-<h3 id="消息转发"><a href="#消息转发" class="headerlink" title="消息转发"></a>消息转发</h3><p>如下图:</p>
-<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/%E6%B6%88%E6%81%AF%E8%BD%AC%E5%8F%91.png" alt="消息转发"></p>
-<p>如果直到NSObject类，仍然没有找到方法的实现，那么系统会去看我们是否是动态实现了该方法.<br>如果是实例方法，会调用对象所在类的</p>
-<pre><code>+ (BOOL)resolveInstanceMethod:(SEL)sel</code></pre><p> 如果是类方法，会调用 </p>
-<pre><code>+ (BOOL)resolveClassMethod:(SEL)sel。</code></pre><p>  代码示例：</p>
-<p>Person.h</p>
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-@interface Person : NSObject
-@end</code></pre><p> Person.m</p>
-<pre><code>#import &quot;Person.h&quot;
-#import &lt;objc/runtime.h&gt;
-
-void setNameImp(id self, SEL _cmd, NSString *name){
-    NSLog(@&quot;%@&quot;,name);
-}
-
-@implementation Person
-
-+ (BOOL)resolveInstanceMethod:(SEL)sel{
-    NSLog(@&quot;%s&quot;,__FUNCTION__);
-    if(sel == @selector(setName:)){
-        class_addMethod(self, sel, (IMP)setNameImp, &quot;v@:@&quot;);
-        return YES;
-    }
-    return [super resolveInstanceMethod:sel];
-}
-@end</code></pre><p>main.m</p>
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-#import &quot;Person.h&quot;
-
-int main(int argc, const char * argv[]) {
-  @autoreleasepool {
-    Person *p = [[Person alloc] init];
-    [p performSelector:@selector(setName:) withObject:@&quot;百客&quot;];
-  }
-  return 0;
-}</code></pre><p> 输出结果：</p>
-<pre><code>+[Person resolveInstanceMethod:]
-百客</code></pre><p>如果动态方法解析时，没有处理传递的消息，那么系统就会走转发流程。<strong>动态解析的两个方法是在消息转发前执行的，如果想跳过动态解析过程，直接走消息转发流程，直接将两个方法的返回值设为NO</strong></p>
-<h4 id="Message-Forwarding"><a href="#Message-Forwarding" class="headerlink" title="Message Forwarding"></a>Message Forwarding</h4><p>运行时，如果走到了转发流程阶段，系统会先判断是否转移了消息的接收者。</p>
-<ol>
-<li><p>转移消息的接收者<br>通过</p>
-<pre><code>- forwardingTargetForSelector:</code></pre><p>可以转移消息的接收者，如果有别的对象可以实现该方法，就直接让那个对象来处理该消息。<strong>不管另一对象的方法是公有还是私有，只要实现了就行</strong></p>
-<pre><code>- (id)forwardingTargetForSelector:(SEL)aSelector{
-  if(@selector(setName:) == aSelector){
-     Student *s = [[Student alloc] init];
-     return s;
-  }
-  return [super forwardingTargetForSelector:aSelector];
- }      </code></pre><p>   Student.m</p>
-<pre><code>#import &quot;Student.h&quot;
-
-@implementation Student
-- (void)setName:(NSString *)name{
-  NSLog(@&quot;%@--&quot;,name);
-}
-@end</code></pre><p><strong>Note:该方式只是转移消息的接受者，不能对传递的消息做修改。</strong></p>
-</li>
-<li><p>完整转发<br>如果上述方式没有对转发的消息做处理，那么系统就会走完整的转发流程。<br>系统会先通过 </p>
-<pre><code>- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector</code></pre><p>方法，找到最终响应传递的消息的方法的地址，然后再通过</p>
-<pre><code>- (void)forwardInvocation:(NSInvocation *)anInvocation</code></pre><p>来转发消息。如果通过第一个方法没有找到最终响应消息的方法的地址，第二个方法是不会执行的。</p>
-<p><strong>通过这种方式转发的消息，我们不仅可以转换消息的接收者，还可以对转发的消息做相应的修改。</strong></p>
-</li>
-</ol>
-<p>继续上面的代码，我们在Person.m中增加了如下代码，main.m中的代码没有做改动。</p>
-<p>  Person.m</p>
-<pre><code>- (void)forwardInvocation:(NSInvocation *)anInvocation{
-   NSString *name = @&quot;hello&quot;;
-   int age = 10;
-   [anInvocation setArgument:&amp;name atIndex:2];
-   [anInvocation setArgument:&amp;age atIndex:3];
-   anInvocation.selector = @selector(setName:age:);                  
-   Student *s = [[Student alloc] init];
-   if([s respondsToSelector:[anInvocation selector]]){
-     [anInvocation invokeWithTarget:s];
-   }else{
-     [super forwardInvocation:anInvocation];
-   }
- }
-
-- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector{
-    NSMethodSignature *sign = [super methodSignatureForSelector:aSelector];
-    if(!sign){
-       Student *s = [[Student alloc] init];
-       sign = [s methodSignatureForSelector:@selector(setName:age:)];
-     }
-    return sign;
- }</code></pre><p>在代码中，我们将转发给Person对象的setName消息，转发给了Student对象，并修改了消息的内容，最终<br>输出结果如下:</p>
-<pre><code>hello--10</code></pre><p>在代码中，我们将转发给Person对象的setName消息，转发给了Student对象，并修改了消息的内容，最终<br>输出结果如下:</p>
-<p>hello–10</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/类的本质/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -677,8 +290,8 @@ int main(int argc, const char * argv[]) {
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-27T17:36:01+08:00">
-                2019-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-27T00:24:01+08:00">
+                2016-04-27
               </time>
             
 
@@ -938,6 +551,268 @@ int main(int argc, const char * argv[]) {
 }</code></pre><p>输出结果：</p>
 <pre><code>我是新类----myClass
 动态添加的成员变量name的值为---小白</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/runtime/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/runtime/" itemprop="url">runtime</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-25T19:26:55+08:00">
+                2016-04-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="RunTime是什么"><a href="#RunTime是什么" class="headerlink" title="RunTime是什么"></a>RunTime是什么</h3><p>OC是一门动态语言，其动态性体现在将数据类型的确定由编译时推迟到了运行时，这幕后的最大功臣就是Runtime。RunTime是一套比较底层的纯C语言API, 属于1个C语言库。我们平时编写的OC代码，在程序运行过程中，最终会转换成Runtime的C语言代码。<br>通过Runtime，我们可以了解到OC类的本质，方法的调用，以及消息转发机制。</p>
+<p><a href="http://opensource.apple.com/tarballs/objc4/" target="_blank" rel="noopener">OC Runtime库地址</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/resources/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疯狂小柠檬">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lemon's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/undefined/resources/" itemprop="url">iOS资源地址</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-04-25T19:20:55+08:00">
+                2016-04-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="资源"><a href="#资源" class="headerlink" title="资源"></a>资源</h3><ul>
+<li><p>runtime源码地址</p>
+<p><a href="https://opensource.apple.com/source/objc4/" target="_blank" rel="noopener">https://opensource.apple.com/source/objc4/</a></p>
+</li>
+<li><p>runtime源码下载地址</p>
+<p><a href="https://opensource.apple.com/tarballs/objc4/" target="_blank" rel="noopener">https://opensource.apple.com/tarballs/objc4/</a></p>
+</li>
+<li><p>GCD源码下载地址</p>
+<p><a href="https://opensource.apple.com/tarballs/libdispatch/" target="_blank" rel="noopener">https://opensource.apple.com/tarballs/libdispatch/</a></p>
+</li>
+</ul>
+<ul>
+<li><p>Apple开源项目地址</p>
+<p><a href="https://opensource.apple.com/source/" target="_blank" rel="noopener">https://opensource.apple.com/source/</a></p>
+</li>
+<li><p>WebKit/JavaScriptCore 地址`</p>
+</li>
+</ul>
+<p><a href="https://opensource.apple.com/release/ios-110.html" target="_blank" rel="noopener">https://opensource.apple.com/release/ios-110.html</a></p>
+<ul>
+<li>十大经典排序算法（动图演示）<br><a href="https://www.cnblogs.com/onepixel/p/7674659.html" target="_blank" rel="noopener">https://www.cnblogs.com/onepixel/p/7674659.html</a></li>
+</ul>
+
           
         
       
