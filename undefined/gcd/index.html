@@ -81,15 +81,15 @@
 
 <meta name="description" content="GCDGCD源码 队列(dispatch_queue_t)向任何队列中提交的 block，都会被放到它的目标队列中执行，而普通串行队列的目标队列就是一个支持 overcommit 的全局队列，全局队列的底层则是一个线程池。 线程池与目标队列的关系图 ; dispatch_async把任务添加到队列的一个链表中，添加完后会唤醒队列，根据 vtable 中的函数指针，调用 wakeup 方法。在 wa">
 <meta property="og:type" content="article">
-<meta property="og:title" content="gcd">
+<meta property="og:title" content="gcd 底层原理">
 <meta property="og:url" content="https://blog.lemongame.top/undefined/gcd/index.html">
 <meta property="og:site_name" content="Lemon&#39;s Blog">
 <meta property="og:description" content="GCDGCD源码 队列(dispatch_queue_t)向任何队列中提交的 block，都会被放到它的目标队列中执行，而普通串行队列的目标队列就是一个支持 overcommit 的全局队列，全局队列的底层则是一个线程池。 线程池与目标队列的关系图 ; dispatch_async把任务添加到队列的一个链表中，添加完后会唤醒队列，根据 vtable 中的函数指针，调用 wakeup 方法。在 wa">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/gcdpool.png">
-<meta property="og:updated_time" content="2019-09-06T08:34:28.578Z">
+<meta property="og:updated_time" content="2019-09-06T08:37:28.258Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="gcd">
+<meta name="twitter:title" content="gcd 底层原理">
 <meta name="twitter:description" content="GCDGCD源码 队列(dispatch_queue_t)向任何队列中提交的 block，都会被放到它的目标队列中执行，而普通串行队列的目标队列就是一个支持 overcommit 的全局队列，全局队列的底层则是一个线程池。 线程池与目标队列的关系图 ; dispatch_async把任务添加到队列的一个链表中，添加完后会唤醒队列，根据 vtable 中的函数指针，调用 wakeup 方法。在 wa">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/xuehan111/images/master/gcdpool.png">
 
@@ -127,7 +127,7 @@
 
 
 
-  <title>gcd | Lemon's Blog</title>
+  <title>gcd 底层原理 | Lemon's Blog</title>
   
 
 
@@ -281,7 +281,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">gcd</h1>
+          <h1 class="post-title" itemprop="name headline">gcd 底层原理</h1>
         
 
         <div class="post-meta">
