@@ -259,7 +259,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/OC与JS交互原理/">
+    <link itemprop="mainEntityOfPage" href="https://blog.lemongame.top/undefined/gcd/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="疯狂小柠檬">
@@ -278,7 +278,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/undefined/OC与JS交互原理/" itemprop="url">OC与JS交互原理</a></h1>
+                <a class="post-title-link" href="/undefined/gcd/" itemprop="url">gcd</a></h1>
         
 
         <div class="post-meta">
@@ -290,8 +290,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-27T12:15:31+08:00">
-                2019-01-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-10T18:49:39+08:00">
+                2018-11-10
               </time>
             
 
@@ -330,88 +330,25 @@
       
         
           
-            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>OC 与 JS 的交互是基于 JavaScriptCore 框架。JavaScriptCore是苹果Safari浏览器的JavaScript引擎，其提供了 JS解析和执行环境，使得我们可以脱离webview直接运行我们的js。该框架充当了 OC 和 JS 代码的桥梁。<br><img src="https://raw.githubusercontent.com/xuehan111/images/master/oc_js%E4%BA%A4%E4%BA%92.png" alt="oc_js交互.png"></p>
-<h3 id="OC-与-JS-交互示例"><a href="#OC-与-JS-交互示例" class="headerlink" title="OC 与 JS 交互示例"></a>OC 与 JS 交互示例</h3><h4 id="OC调用JS方法"><a href="#OC调用JS方法" class="headerlink" title="OC调用JS方法"></a>OC调用JS方法</h4><pre><code>NSString *jsCode = @&quot;function A(){return 10;}&quot;;
-JSContext *context = [[JSContext alloc] init];
-[context evaluateScript:jsCode];
-JSValue *value = [context evaluateScript:@&quot;A()&quot;];
-NSLog(@&quot;%d&quot;, [value toInt32]);</code></pre><h4 id="JS调用OC方法"><a href="#JS调用OC方法" class="headerlink" title="JS调用OC方法"></a>JS调用OC方法</h4><pre><code>JSContext *context = [[JSContext alloc] init];
-// 初始化方法
-context[@&quot;test&quot;] =  ^() {
-    NSLog(@&quot;1230&quot;);
-};
-// 调用方法
- [context evaluateScript:@&quot;test()&quot;];</code></pre><h3 id="OC-与-JS-交互原理"><a href="#OC-与-JS-交互原理" class="headerlink" title="OC 与 JS 交互原理"></a>OC 与 JS 交互原理</h3><p> 先了解下JavaScriptCore 框架中的几个对象: JSVirtualMachine、JSContext、JSValue、JSManagedValue</p>
-<h4 id="JSVirtualMachine"><a href="#JSVirtualMachine" class="headerlink" title="JSVirtualMachine"></a>JSVirtualMachine</h4><p>从字面意思上看，是JS虚拟机。一个JSVirtualMachine实例代表了一个 JS运行环境，或者可以说是一系列JS运行所需的资源。该类有两个主要的使用用途：一是支持并发的JS调用，二是管理JS和Native之间桥对象的内存。</p>
-<p>JS是单线程机制，在一个JSVirtualMachine中，只有一条线程可以执行JS代码，所以我们无法在一个JSVirtualMachine进行多线程处理JS任务。如果要多线程处理JS任务，就需要同时生成多个JSVirtualMachine，从而达到多线程处理的目的。</p>
-<h4 id="JSContext"><a href="#JSContext" class="headerlink" title="JSContext"></a>JSContext</h4><p> 每个JSContext都从属于一个JSVirtualMachine，一个JSVirtualMachine可以包含多个JSContext。</p>
-<p> JSContext负责JS语言的执行，JS代码的执行必须在JSContext之中。我们可以通过创建一个JSContext去调用JS脚本，访问一些JS定义的值和函数，同时JSContext也提供了让JS访问Native对象，方法的接口。</p>
-<p> JSContext 的属性中有个 globalObject对象，它返回当前执行JSContext的全局对象，这个globalObject对象就是 JSContext的核心。我们在原生中对js的交互，其实就是在跟这个对象交互。globalObject对象存储了我们注入到JS中的原生方法以及我们在执行JS代码后，生成的变量和函数。在WebKit中，JSContext返回的global对象就是 Window对象。</p>
-<h4 id="JSValue"><a href="#JSValue" class="headerlink" title="JSValue"></a>JSValue</h4><p>OC 是不可以直接使用 JS 的变量和函数的，同时，JS 也是不可以直接使用 OC 的变量和方法的。因此，需要经过转化之后才可以使用。JSValue 可以实现OC 和 JS值的相互转化。一个JSValue 代表了一个JS值的引用。</p>
-<p>OC 和 JS 类型转化关系如下:</p>
-<table>
-<thead>
-<tr>
-<th>Objective-C type</th>
-<th>JavaScript type</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>nil</td>
-<td>undefined</td>
-</tr>
-<tr>
-<td>NSNull</td>
-<td>null</td>
-</tr>
-<tr>
-<td>NSString</td>
-<td>string</td>
-</tr>
-<tr>
-<td>NSNumber</td>
-<td>number, boolean</td>
-</tr>
-<tr>
-<td>NSDictionary</td>
-<td>Object object</td>
-</tr>
-<tr>
-<td>NSArray</td>
-<td>Array object</td>
-</tr>
-<tr>
-<td>NSDate</td>
-<td>Date object</td>
-</tr>
-<tr>
-<td>NSBlock</td>
-<td>Function object</td>
-</tr>
-<tr>
-<td>id</td>
-<td>Wrapper object</td>
-</tr>
-<tr>
-<td>Class</td>
-<td>Constructor object</td>
-</tr>
-</tbody></table>
-<h5 id="NSDictionary-lt-—-gt-js-Object"><a href="#NSDictionary-lt-—-gt-js-Object" class="headerlink" title="NSDictionary &lt;—&gt; js Object"></a>NSDictionary &lt;—&gt; js Object</h5><p> OC 的 NSDictionary是key，value键值对形式，JS 的 Object 也是 键值(key,value)的形式.因此可以相互转化。</p>
-<pre><code>var person = {&quot;name&quot;: &quot;xuehan&quot;, &quot;age&quot;: 10 }; // js Object
-NSDictionary *dict = @{@&quot;name&quot;: @&quot;xuehan&quot;, @&quot;age&quot;: @10} //  OC NSDictionary</code></pre><h5 id="NSBlock-lt-—-gt-js-Function"><a href="#NSBlock-lt-—-gt-js-Function" class="headerlink" title="NSBlock &lt;—&gt; js Function"></a>NSBlock &lt;—&gt; js Function</h5><p> OC 中的Block，本质上就是一个包裹了函数指针的类。而 JS 中的函数实际上也是一个”Function”类型的对象，函数名 其实就是指向一个函数对象的引用。因此可以相互转化</p>
-<pre><code>// OC block
-void (^Block)() = ^{
-    NSLog(@&quot;123&quot;);
-}
-// js 函数
-var test = function(){
-    return 10;
-}</code></pre><h4 id="JSManagedValue"><a href="#JSManagedValue" class="headerlink" title="JSManagedValue"></a>JSManagedValue</h4><p>JS内存管理是垃圾回收，并且JS中的对象都是强引用，而OC是引用计数。如果双方相互引用，势必会造成循环引用，而导致内存泄露。我们可以用JSManagedValue保存JSValue来避免.</p>
-<p>JSManagedValue 采用了 “conditionally retained” 机制来管理 内存，即 只要对象能通过 JS object graph 或者  通过 addManagedReference:withOwner: 方式告知给 JSVirtualMachine 的 Objective-C object graph 访问到，就不会释放。</p>
-<h4 id="交互原理"><a href="#交互原理" class="headerlink" title="交互原理"></a>交互原理</h4><p>OC 调用JS方法时，是通过 JSContext的 evaluateScript 方法的执行 js 代码。该方法在globalObject中保存了生成的变量和方法，同时将值以JSValue的形式存储起来。 </p>
-<p>JS 调用 OC 原生方法，需要将原生代码先通过JSContext转化为JSValue的形式，注入到 JSContext中的globalObject里面（示例是通过Block的方式将原生方法注入到globalObject中去的。</p>
-<p>这样，无论原生代码还是JS代码，最终都将信息通过JSValue的方式保存在了globalObject中，在交互时，通过JSContext 获取到对应的 JSValue, 即可实现交互。在JS 调用原生代码时，通过拿到对应的JSValue，然后取出 invocation，来实现动态调用原生方法的。</p>
+            <h3 id="GCD"><a href="#GCD" class="headerlink" title="GCD"></a>GCD</h3><p><a href="https://apple.github.io/swift-corelibs-libdispatch/" target="_blank" rel="noopener">GCD源码</a></p>
+<h4 id="队列-dispatch-queue-t"><a href="#队列-dispatch-queue-t" class="headerlink" title="队列(dispatch_queue_t)"></a>队列(dispatch_queue_t)</h4><p>向任何队列中提交的 block，都会被放到它的目标队列中执行，而普通串行队列的目标队列就是一个支持 overcommit 的全局队列，全局队列的底层则是一个线程池。</p>
+<p>线程池与目标队列的关系图</p>
+<p><img src="https://raw.githubusercontent.com/xuehan111/images/master/gcdpool.png" alt>;</p>
+<h4 id="dispatch-async"><a href="#dispatch-async" class="headerlink" title="dispatch_async"></a>dispatch_async</h4><p>把任务添加到队列的一个链表中，添加完后会唤醒队列，根据 vtable 中的函数指针，调用 wakeup 方法。在 wakeup 方法中，从线程池里取出工作线程(如果没有就新建)，然后在工作线程中取出链表头部指向的 block 并执行。</p>
+<h5 id="dispatch-sync"><a href="#dispatch-sync" class="headerlink" title="dispatch_sync"></a>dispatch_sync</h5><p>它不涉及线程池(因此一般都在当前线程执行)，而是利用与线程绑定的信号量来实现串行。</p>
+<p>分发到不同队列时，代码进入的分支也不一样，比如 dispatch_async 到主队列的任务由 runloop 处理，而分发到其他队列的任务由线程池处理。</p>
+<p>在当前串行队列中执行 dispatch_sync 时，由于 dq_running 属性(表示在运行的任务数量) 为 1，所以以下判断成立:</p>
+<pre><code>if (slowpath(!dispatch_atomic_cmpxchg2o(dq, dq_running, 0, 1))) {
+    return _dispatch_barrier_sync_f_slow(dq, ctxt, func);
+}</code></pre><p>在 _dispatch_barrier_sync_f_slow 函数中使用了线程对应的信号量并且调用 wait 方法，从而导致线程死锁。</p>
+<p>如果向其它队列同步提交 block，最终进入 _dispatch_barrier_sync_f_invoke，它只是保证了 block 执行的原子性，但没有使用线程对应的信号量。</p>
+<h4 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h4><p>它主要使用 signal 和 wait 这两个接口，底层分别调用了内核提供的方法。在调用 signal 方法后，先将 value 减一，如果大于零立刻返回，否则陷入等待。signal 方法将信号量加一，如果 value 大于零立刻返回，否则说明唤醒了某一个等待线程，此时由系统决定哪个线程的等待方法可以返回。</p>
+<h4 id="dispatch-group"><a href="#dispatch-group" class="headerlink" title="dispatch_group"></a>dispatch_group</h4><p>本质就是一个 value 非常大的信号量，等待 group 完成实际上就是等待 value 恢复初始值。而 notify 的作用是将所有注册的回调组装成一个链表，在 dispatch_async 完成时判断 value 是不是恢复初始值，如果是则调用 dispatch_async 异步执行所有注册的回调。</p>
+<h4 id="dispatch-once"><a href="#dispatch-once" class="headerlink" title="dispatch_once"></a>dispatch_once</h4><p>通过一个静态变量来标记 block 是否已被执行，同时使用信号量确保只有一个线程能执行，执行完 block 后会唤醒其他所有等待的线程。</p>
+<h4 id="dispatch-barrier-async"><a href="#dispatch-barrier-async" class="headerlink" title="dispatch_barrier_async"></a>dispatch_barrier_async</h4><p>改变了 block 的 vtable 标记位，当它将要被取出执行时，会等待前面的 block 都执行完，然后在下一次循环中被执行。</p>
+<h4 id="dispatch-source"><a href="#dispatch-source" class="headerlink" title="dispatch_source"></a>dispatch_source</h4><p>可以用来实现定时器。所有的 source 会被提交到用户指定的队列，然后提交到 manager 队列中，按照触发时间排好序。随后找到最近触发的定时器，调用内核的 select 方法等待。等待结束后，依次唤醒 manager 队列和用户指定队列，最终触发一开始设置的回调 block。</p>
+<p>GCD 中的对象用 do_suspend_cnt 来表示是否暂停。队列默认处于启动状态，而 dispatch_source 需要手动启动。</p>
+<p>dispatch_after 函数依赖于 dispatch_source 定时器，它只是注册了一个定时器，然后在回调函数中执行 block。</p>
 
           
         
