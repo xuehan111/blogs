@@ -79,12 +79,12 @@
 
 
 
-<meta name="description" content="Gitgit流程图git的大致流程图入下:   Workspace：工作区 Index / Stage：暂存区 Repository：本地仓库 Remote：远程仓库  1.Workspace 工作区 正在编辑的文件状态。该区域下的下的文件状态为未跟踪（untrack）状态。 通过git pull把远程仓库中的文件同步到工作区 2.Index/Stage 暂存区 保存了下次将提交的文件列表信息。该">
+<meta name="description" content="git存储原理git流程图git的大致流程图入下:   Workspace：工作区 Index / Stage：暂存区 Repository：本地仓库 Remote：远程仓库  1.Workspace 工作区 正在编辑的文件状态。该区域下的下的文件状态为未跟踪（untrack）状态。 通过git pull把远程仓库中的文件同步到工作区 2.Index/Stage 暂存区 保存了下次将提交的文件列表">
 <meta property="og:type" content="article">
-<meta property="og:title" content="git">
+<meta property="og:title" content="git存储原理">
 <meta property="og:url" content="https://blog.lemongame.top/undefined/git/index.html">
 <meta property="og:site_name" content="Lemon&#39;s Blog">
-<meta property="og:description" content="Gitgit流程图git的大致流程图入下:   Workspace：工作区 Index / Stage：暂存区 Repository：本地仓库 Remote：远程仓库  1.Workspace 工作区 正在编辑的文件状态。该区域下的下的文件状态为未跟踪（untrack）状态。 通过git pull把远程仓库中的文件同步到工作区 2.Index/Stage 暂存区 保存了下次将提交的文件列表信息。该">
+<meta property="og:description" content="git存储原理git流程图git的大致流程图入下:   Workspace：工作区 Index / Stage：暂存区 Repository：本地仓库 Remote：远程仓库  1.Workspace 工作区 正在编辑的文件状态。该区域下的下的文件状态为未跟踪（untrack）状态。 通过git pull把远程仓库中的文件同步到工作区 2.Index/Stage 暂存区 保存了下次将提交的文件列表">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/git%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/git_objects.jpg">
@@ -96,10 +96,10 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/git_refs.jpg">
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/git_merge.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/xuehan111/images/master/git_merge_result.png">
-<meta property="og:updated_time" content="2019-09-06T08:05:47.208Z">
+<meta property="og:updated_time" content="2019-09-06T08:30:03.769Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="git">
-<meta name="twitter:description" content="Gitgit流程图git的大致流程图入下:   Workspace：工作区 Index / Stage：暂存区 Repository：本地仓库 Remote：远程仓库  1.Workspace 工作区 正在编辑的文件状态。该区域下的下的文件状态为未跟踪（untrack）状态。 通过git pull把远程仓库中的文件同步到工作区 2.Index/Stage 暂存区 保存了下次将提交的文件列表信息。该">
+<meta name="twitter:title" content="git存储原理">
+<meta name="twitter:description" content="git存储原理git流程图git的大致流程图入下:   Workspace：工作区 Index / Stage：暂存区 Repository：本地仓库 Remote：远程仓库  1.Workspace 工作区 正在编辑的文件状态。该区域下的下的文件状态为未跟踪（untrack）状态。 通过git pull把远程仓库中的文件同步到工作区 2.Index/Stage 暂存区 保存了下次将提交的文件列表">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/xuehan111/images/master/git%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
 
 
@@ -136,7 +136,7 @@
 
 
 
-  <title>git | Lemon's Blog</title>
+  <title>git存储原理 | Lemon's Blog</title>
   
 
 
@@ -290,7 +290,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">git</h1>
+          <h1 class="post-title" itemprop="name headline">git存储原理</h1>
         
 
         <div class="post-meta">
@@ -302,8 +302,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-28T18:53:38+08:00">
-                2019-07-28
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-16T18:53:38+08:00">
+                2019-07-16
               </time>
             
 
@@ -340,7 +340,7 @@
       
 
       
-        <h3 id="Git"><a href="#Git" class="headerlink" title="Git"></a>Git</h3><h4 id="git流程图"><a href="#git流程图" class="headerlink" title="git流程图"></a>git流程图</h4><p>git的大致流程图入下:</p>
+        <h3 id="git存储原理"><a href="#git存储原理" class="headerlink" title="git存储原理"></a>git存储原理</h3><h4 id="git流程图"><a href="#git流程图" class="headerlink" title="git流程图"></a>git流程图</h4><p>git的大致流程图入下:</p>
 <p><img src="https://raw.githubusercontent.com/xuehan111/images/master/git%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="git流程图.png"></p>
 <ul>
 <li>Workspace：工作区</li>
@@ -461,8 +461,8 @@ committer xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/undefined/block/" rel="next" title="block">
-                <i class="fa fa-chevron-left"></i> block
+              <a href="/undefined/git命令/" rel="next" title="git命令">
+                <i class="fa fa-chevron-left"></i> git命令
               </a>
             
           </div>
@@ -471,8 +471,8 @@ committer xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/undefined/git命令/" rel="prev" title="git命令">
-                git命令 <i class="fa fa-chevron-right"></i>
+              <a href="/undefined/gcd/" rel="prev" title="gcd">
+                gcd <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -589,7 +589,7 @@ committer xiaobai &lt;madd@smartoven.tech&gt; 1560320009 +0800
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Git"><span class="nav-number">1.</span> <span class="nav-text">Git</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#git流程图"><span class="nav-number">1.1.</span> <span class="nav-text">git流程图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#git内部原理详解"><span class="nav-number">1.2.</span> <span class="nav-text">git内部原理详解</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#git分支"><span class="nav-number">1.3.</span> <span class="nav-text">git分支</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#git存储原理"><span class="nav-number">1.</span> <span class="nav-text">git存储原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#git流程图"><span class="nav-number">1.1.</span> <span class="nav-text">git流程图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#git内部原理详解"><span class="nav-number">1.2.</span> <span class="nav-text">git内部原理详解</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#git分支"><span class="nav-number">1.3.</span> <span class="nav-text">git分支</span></a></li></ol></li></ol></div>
             
 
           </div>
